@@ -7,11 +7,21 @@ Since LIO_SAM is only suitable for 9-axis IMU, this is mainly based on the initi
 
 `roslaunch lio_sam_6axis pandar.launch`
 
-
-
 ## Adaptation for 6 axis IMU
 
-Because LIO_SAM only uses the acceleration and angular velocity in the IMU data to estimate the system state, and its orientation data only initializes the orientation of the system in the back-end optimization module, it is very simple to adapt to the 6-axis IMU. On the premise that the IMU coordinate system and the radar coordinate system are aligned, it is only necessary to modify the imuConverter function. The specific method is to modify the `imuConverter` function in the `LIO-SAM-6AXIS/include/utility.h` file, as follows.
+#### 1.align the coordinate system between IMU and Lidar
+
+Before we align the coordinate systems of the IMU and lidar, that is, set the three parameters `extrinsicTrans`, `extrinsicRot` and `extrinsicRPY` in the `LIO-SAM-6AXIS/config/params.yaml` file. Many people have questions about the latter two rotation extrinsic parameters, why There will be two different values for the external participation of the lidar to the IMU. The author's reply is directly posted below.
+
+![image-20220412200907783](README/image-20220412200907783.png)
+
+![image-20220412220126042](README/image-20220412220126042.png)
+
+In short, the lidar coordinate system should comply with the REP105 standard, that is, to ensure that the lidar coordinate system xyz represents the direction, front、left and upper. The following will take the Hesai radar coordinate system as an example to illustrate.
+
+#### 2.modify the `6AXIS/include/utility.h` file
+
+Because LIO_SAM only uses the acceleration and angular velocity in the IMU data to estimate the system state, and its orientation data only initializes the orientation of the system in the back-end optimization module, it is very simple to adapt to the 6-axis IMU. On the premise that the IMU coordinate system and the lidar coordinate system are aligned, it is only necessary to modify the imuConverter function. The specific method is to modify the `imuConverter` function in the `LIO-SAM-6AXIS/include/utility.h` file, as follows.
 
 ```c++
   sensor_msgs::Imu imuConverter(const sensor_msgs::Imu &imu_in) {
@@ -50,6 +60,8 @@ Because LIO_SAM only uses the acceleration and angular velocity in the IMU data 
 ```
 
 `q_final` represents the orientation result taken from the IMU data. For the 6-axis IMU, we generally integrate our own in the SLAM system instead of directly adopting this result. But in the 9-axis IMU, the orentation part is the global attitude, that is, the result of the fusion with the magnetometer, which represents the angle between the IMU and the magnetic north pole. So here we only need to align the coordinate axis of the orentation data with the base_link, that is, multiply the lidar to the external parameter of the IMU.
+
+
 
 ## Adaptation for different types of lidar
 
@@ -109,7 +121,7 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(OusterPointXYZIRT,
 
 ## Acknowledgments
 
-Thanks for  [Guoqing Zhang](https://github.com/MyEvolution)  from Tsinghua University.
+Thanks for  [Guoqing Zhang](https://github.com/MyEvolution).
 
 Thanks for [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM).
 
