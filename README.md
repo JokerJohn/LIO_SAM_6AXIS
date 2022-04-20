@@ -14,15 +14,17 @@ Since LIO_SAM is only suitable for 9-axis IMU, this is mainly based on the initi
 
 
 
+# Run
+
+when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just make sure your vehicles are in a good position where the status of GNSS is stable encough, or you can not initialize your system successfully! 
+
+```
+roslaunch lio_sam_6axis run.launch
+```
+
 - [ ] you can get the test  [video](https://www.youtube.com/watch?v=3H-qZvEado0)
 
 - [ ] You can get the test data in  [dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4)
-
-# Run
-
-`roslaunch lio_sam_6axis run.launch`
-
-when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just make sure your vehicles are in a good position where the status of GNSS is stable encough, or you can not initialize your system successfully! 
 
 ## Adaptation for 6 axis IMU
 
