@@ -1,0 +1,5 @@
+string destination
+float32 resolution
+string name
+---
+bool success

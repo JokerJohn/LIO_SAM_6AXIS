@@ -1,0 +1,21 @@
+<launch>
+
+    <arg name="project" default="lio_sam_6axis"/>
+
+    <!-- Parameters -->
+    <rosparam file="$(find lio_sam_6axis)/config/params_hilti.yaml" command="load"/>
+
+    <!--- LOAM -->
+    <include file="$(find lio_sam_6axis)/launch/include/module_loam.launch"/>
+
+    <!--- Robot State TF -->
+    <include file="$(find lio_sam_6axis)/launch/include/module_robot_state_publisher.launch"/>
+
+    <!--- Run Navsat -->
+    <!--    <include file="$(find lio_sam)/launch/include/module_navsat.launch" />-->
+    <!--    <include file="$(find global_fusion)/launch/debug_gps.launch"/>-->
+
+    <!--- Run Rviz-->
+    <include file="$(find lio_sam_6axis)/launch/include/module_rviz.launch"/>
+
+</launch>

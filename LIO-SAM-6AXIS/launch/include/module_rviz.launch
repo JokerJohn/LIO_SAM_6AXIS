@@ -1,0 +1,8 @@
+<launch>
+
+    <arg name="project" default="lio_sam_6axis"/>
+
+    <!--- Run Rviz-->
+    <node pkg="rviz" type="rviz" name="$(arg project)_rviz" args="-d $(find lio_sam_6axis)/launch/include/config/rviz.rviz" />
+
+</launch>
