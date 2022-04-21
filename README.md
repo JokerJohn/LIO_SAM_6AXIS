@@ -10,14 +10,14 @@ for normal GNSS, we do not need to use the robot_localization module since
 
 ![image-20220421102351677](README/image-20220421102351677.png)
 
+we add the gps constraint visualization module to help debugging the normal gps(red lines represents for gps constraint).
 
+![image-20220421113413972](README/image-20220421113413972.png)
 
 ## Problems
 
 1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for test!  we will updtae the new version of codes later. I haven't released the node of `GPS_ODOM`, because this part of the code is poorly written, I will organize and update it later. You can first set `useGPS` to false. The test data is a section of campus of more than 10km. It was collected on a mountain road. The elevation changes greatly, the GPS data is unstable, and there is a tunnel, which is very challenging. LIO_SAM will be difficult to close the loop or crash directly in the later downhill road. You can test it yourself and find the reason. 
 2. ouster/pandar lidar + 6aixs-IMU are all ok, we will release the test data later. 
-
-
 
 # Run
 
