@@ -3,9 +3,12 @@ LIO_SAM for 6 axis IMU and normal GNSS.
 
 Since LIO_SAM is only suitable for 9-axis IMU, this is mainly based on the initialization module consideration, but the orientation information of IMU is not used in state estimation. Therefore, only minor changes to the original code are required. In addition, the back-end GNSS-based position optimization relies on the robot_localization node, and also requires a 9-axis IMU, which can directly use GPS coordinates of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and external parameters between lidars and IMUs, such as Hesai lidars.
 
-for normal GNSS, we do not use the robot_localization module.
+for normal GNSS, we do not need to use the robot_localization module since
 
-![image-20220420162351207](README/image-20220420162351207.png)
+-  if there has a distance without gps, the ekf fusion node may have large noise.
+- robot_localization module need a 9-axis IMU
+
+![image-20220421102351677](README/image-20220421102351677.png)
 
 
 
