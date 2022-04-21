@@ -71,6 +71,7 @@ class mapOptimization : public ParamServer {
   ros::Publisher pubCloudRegisteredRaw;
   ros::Publisher pubCloudRaw;
   ros::Publisher pubLoopConstraintEdge;
+  ros::Publisher pubGpsConstraintEdge;
 
   ros::Publisher pubSLAMInfo;
 
@@ -88,6 +89,7 @@ class mapOptimization : public ParamServer {
   vector<pcl::PointCloud<PointType>::Ptr> laserCloudRawKeyFrames;
 
   pcl::PointCloud<PointType>::Ptr cloudKeyPoses3D;
+  pcl::PointCloud<PointType>::Ptr cloudKeyGPSPoses3D;
   pcl::PointCloud<PointTypePose>::Ptr cloudKeyPoses6D;
   pcl::PointCloud<PointType>::Ptr copy_cloudKeyPoses3D;
   pcl::PointCloud<PointTypePose>::Ptr copy_cloudKeyPoses6D;
@@ -154,6 +156,7 @@ class mapOptimization : public ParamServer {
 
   bool aLoopIsClosed = false;
   map<int, int> loopIndexContainer; // from new to old
+  map<int, int> gpsIndexContainer; // from new to old
   vector<pair<int, int>> loopIndexQueue;
   vector<gtsam::Pose3> loopPoseQueue;
   vector<gtsam::noiseModel::Diagonal::shared_ptr> loopNoiseQueue;
@@ -203,6 +206,8 @@ class mapOptimization : public ParamServer {
         nh.advertise<sensor_msgs::PointCloud2>("lio_sam_6axis/mapping/icp_loop_closure_corrected_cloud", 1);
     pubLoopConstraintEdge =
         nh.advertise<visualization_msgs::MarkerArray>("/lio_sam_6axis/mapping/loop_closure_constraints", 1);
+    pubGpsConstraintEdge =
+        nh.advertise<visualization_msgs::MarkerArray>("/lio_sam_6axis/mapping/gps_constraints", 1);
 
     pubRecentKeyFrames = nh.advertise<sensor_msgs::PointCloud2>("lio_sam_6axis/mapping/map_local", 1);
     pubRecentKeyFrame = nh.advertise<sensor_msgs::PointCloud2>("lio_sam_6axis/mapping/cloud_registered", 1);
@@ -228,6 +233,7 @@ class mapOptimization : public ParamServer {
 
   void allocateMemory() {
     cloudKeyPoses3D.reset(new pcl::PointCloud<PointType>());
+    cloudKeyGPSPoses3D.reset(new pcl::PointCloud<PointType>());
     cloudKeyPoses6D.reset(new pcl::PointCloud<PointTypePose>());
     copy_cloudKeyPoses3D.reset(new pcl::PointCloud<PointType>());
     copy_cloudKeyPoses6D.reset(new pcl::PointCloud<PointTypePose>());
@@ -578,6 +584,8 @@ class mapOptimization : public ParamServer {
     while (ros::ok()) {
       rate.sleep();
       publishGlobalMap();
+      if (useGPS)
+        visualGPSConstraint();
     }
     if (savePCD == false)
       return;
@@ -1000,6 +1008,63 @@ class mapOptimization : public ParamServer {
     markerArray.markers.push_back(markerNode);
     markerArray.markers.push_back(markerEdge);
     pubLoopConstraintEdge.publish(markerArray);
+  }
+
+  void visualGPSConstraint() {
+    if (gpsIndexContainer.empty())
+      return;
+
+    visualization_msgs::MarkerArray markerArray;
+    // gps nodes
+    visualization_msgs::Marker markerNode;
+    markerNode.header.frame_id = odometryFrame;
+    markerNode.header.stamp = timeLaserInfoStamp;
+    markerNode.action = visualization_msgs::Marker::ADD;
+    markerNode.type = visualization_msgs::Marker::SPHERE_LIST;
+    markerNode.ns = "gps_nodes";
+    markerNode.id = 0;
+    markerNode.pose.orientation.w = 1;
+    markerNode.scale.x = 0.3;
+    markerNode.scale.y = 0.3;
+    markerNode.scale.z = 0.3;
+    markerNode.color.r = 0.8;
+    markerNode.color.g = 0;
+    markerNode.color.b = 1;
+    markerNode.color.a = 1;
+    // loop edges
+    visualization_msgs::Marker markerEdge;
+    markerEdge.header.frame_id = odometryFrame;
+    markerEdge.header.stamp = timeLaserInfoStamp;
+    markerEdge.action = visualization_msgs::Marker::ADD;
+    markerEdge.type = visualization_msgs::Marker::LINE_LIST;
+    markerEdge.ns = "gps_edges";
+    markerEdge.id = 1;
+    markerEdge.pose.orientation.w = 1;
+    markerEdge.scale.x = 0.1;
+    markerEdge.color.r = 0.9;
+    markerEdge.color.g = 0;
+    markerEdge.color.b = 0.1;
+    markerEdge.color.a = 1;
+
+    for (auto it = gpsIndexContainer.begin(); it != gpsIndexContainer.end(); ++it) {
+      int key_cur = it->first;
+      int key_pre = it->second;
+      geometry_msgs::Point p;
+      p.x = copy_cloudKeyPoses6D->points[key_cur].x;
+      p.y = copy_cloudKeyPoses6D->points[key_cur].y;
+      p.z = copy_cloudKeyPoses6D->points[key_cur].z;
+      markerNode.points.push_back(p);
+      markerEdge.points.push_back(p);
+      p.x = cloudKeyGPSPoses3D->points[key_pre].x;
+      p.y = cloudKeyGPSPoses3D->points[key_pre].y;
+      p.z = cloudKeyGPSPoses3D->points[key_pre].z;
+      markerNode.points.push_back(p);
+      markerEdge.points.push_back(p);
+    }
+
+    markerArray.markers.push_back(markerNode);
+    markerArray.markers.push_back(markerEdge);
+    pubGpsConstraintEdge.publish(markerArray);
   }
 
   void updateInitialGuess() {
@@ -1792,8 +1857,11 @@ class mapOptimization : public ParamServer {
         float noise_y = thisGPS.pose.covariance[7];
         float noise_z = thisGPS.pose.covariance[14];
 
-//        if (noise_x > gpsCovThreshold || noise_y > gpsCovThreshold)
-//          continue;
+        //        if (noise_x > gpsCovThreshold || noise_y > gpsCovThreshold)
+        //          continue;
+        // make sure zhe gps data is stable encough
+        if (abs(noise_x) > gpsCovThreshold || abs(noise_y) > gpsCovThreshold)
+          continue;
 
         float gps_x = thisGPS.pose.pose.position.x;
         float gps_y = thisGPS.pose.pose.position.y;
@@ -1804,31 +1872,50 @@ class mapOptimization : public ParamServer {
         }
 
         //ROS_WARN(" gps lidar off time: %f ", off_time);
-        std::cout << "currlidar pose: " << transformTobeMapped[3] << ", " << transformTobeMapped[4] << ", "
-                  << transformTobeMapped[5] << std::endl;
-        std::cout << "currGPS position: " << gps_x << ", " << gps_y << ", " << gps_z << std::endl;
-        std::cout << "currGPS cov: " << thisGPS.pose.covariance[0] << ", " << thisGPS.pose.covariance[7]
-                  << ", " << thisGPS.pose.covariance[14] << std::endl;
+        //        std::cout << "currlidar pose: " << transformTobeMapped[3] << ", " << transformTobeMapped[4] << ", "
+        //                  << transformTobeMapped[5] << std::endl;
+        //        std::cout << "currGPS position: " << gps_x << ", " << gps_y << ", " << gps_z << std::endl;
+        //        std::cout << "currGPS cov: " << thisGPS.pose.covariance[0] << ", " << thisGPS.pose.covariance[7]
+        //                  << ", " << thisGPS.pose.covariance[14] << std::endl;
+
+        //        ROS_INFO("curr lidar pose: %f, %f , %f",
+        //                 transformTobeMapped[3],
+        //                 transformTobeMapped[4],
+        //                 transformTobeMapped[5]);
+        ROS_INFO("curr gps pose: %f, %f , %f", gps_x, gps_y, gps_z);
+        ROS_INFO("curr gps cov: %f, %f , %f",
+                 thisGPS.pose.covariance[0],
+                 thisGPS.pose.covariance[7],
+                 thisGPS.pose.covariance[14]);
+
 
         // GPS not properly initialized (0,0,0)
         if (abs(gps_x) < 1e-6 && abs(gps_y) < 1e-6)
           continue;
+
+
 
         // Add GPS every a few meters
         PointType curGPSPoint;
         curGPSPoint.x = gps_x;
         curGPSPoint.y = gps_y;
         curGPSPoint.z = gps_z;
+
         if (pointDistance(curGPSPoint, lastGPSPoint) < 5.0)
           continue;
         else
           lastGPSPoint = curGPSPoint;
+
 
         gtsam::Vector Vector3(3);
         Vector3 << max(noise_x, 1.0f), max(noise_y, 1.0f), max(noise_z, 1.0f);
         noiseModel::Diagonal::shared_ptr gps_noise = noiseModel::Diagonal::Variances(Vector3);
         gtsam::GPSFactor gps_factor(cloudKeyPoses3D->size(), gtsam::Point3(gps_x, gps_y, gps_z), gps_noise);
         gtSAMgraph.add(gps_factor);
+
+        // add loop constriant
+        cloudKeyGPSPoses3D->points.push_back(curGPSPoint);
+        gpsIndexContainer[cloudKeyPoses3D->size()] = cloudKeyGPSPoses3D->size();
 
         aLoopIsClosed = true;
         break;
