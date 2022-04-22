@@ -1,12 +1,12 @@
 # LIO_SAM_6AXIS
 LIO_SAM for 6 axis IMU and normal GNSS.
 
-Since LIO_SAM is only suitable for 9-axis IMU, this is mainly based on the initialization module consideration, but the orientation information of IMU is not used in state estimation. Therefore, only minor changes to the original code are required. In addition, the back-end GNSS-based position optimization relies on the robot_localization node, and also requires a 9-axis IMU, which can directly use GPS coordinates of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and external parameters between lidars and IMUs, such as Hesai lidars.
+Since LIO_SAM is only suitable for 9-axis IMU, this is mainly based on the initialization module consideration, but the orientation information of IMU is not used in state estimation module. Therefore, only minor changes to the original code are required. In addition, the back-end GNSS-based position optimization relies on the robot_localization node, and also requires a 9-axis IMU, which can directly use GPS coordinates of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and external parameters between lidars and IMUs, such as Hesai lidars.
 
 for normal GNSS, we do not need to use the robot_localization module since
 
 -  if there has a distance without gps, the ekf fusion node may have large noise.
-- robot_localization module need a 9-axis IMU
+- the ekf node in robot_localization module need a 9-axis IMU
 
 ![image-20220421102351677](README/image-20220421102351677.png)
 
@@ -16,7 +16,7 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 ## Problems
 
-1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for test!  we will updtae the new version of codes later. I haven't released the node of `GPS_ODOM`, because this part of the code is poorly written, I will organize and update it later. You can first set `useGPS` to false. The test data is a section of campus of more than 10km. It was collected on a mountain road. The elevation changes greatly, the GPS data is unstable, and there is a tunnel, which is very challenging. LIO_SAM will be difficult to close the loop or crash directly in the later downhill road. You can test it yourself and find the reason. 
+1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for test!  we will updtae the new version of codes later. **I haven't released the node of `GPS_ODOM`, because this part of the code is poorly written**, I will organize and update it later. You can first set `useGPS` to false. The test data is a section of campus of more than 10km. It was collected on a mountain road. The elevation changes greatly, the GPS data is unstable, and there is a tunnel, which is very challenging. LIO_SAM will be difficult to close the loop or crash directly in the later downhill road. You can test it yourself and find the reason. 
 2. ouster/pandar lidar + 6aixs-IMU are all ok, we will release the test data later. 
 
 # Run
@@ -31,7 +31,7 @@ roslaunch lio_sam_6axis run.launch
 
 - [ ] You can get the test data in  [dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4)
 
-## Adaptation for 6 axis IMU
+## Adaptation for 6-axis IMU
 
 #### 1.align the coordinate system between IMU and Lidar
 
