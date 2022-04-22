@@ -1,12 +1,18 @@
 # LIO_SAM_6AXIS
-LIO_SAM for 6 axis IMU and normal GNSS.
+This repo may help to adapt LIO_SAM in your own data! It has 2 main changes comparing with the origin system.
 
-Since LIO_SAM is only suitable for 9-axis IMU, this is mainly based on the initialization module consideration, but the orientation information of IMU is not used in state estimation module. Therefore, only minor changes to the original code are required. In addition, the back-end GNSS-based position optimization relies on the robot_localization node, and also requires a 9-axis IMU, which can directly use GPS coordinates of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and external parameters between lidars and IMUs, such as Hesai lidars.
+- support with  a 6-axis IMU, since the orientation information of IMU is not used in state estimation module.
+- support normal GNSS, we do not need to adapt for the robot_localization node.
+- support the gps constraint visualization module to help debugging the normal GNSS.(the following picture)
 
-for normal GNSS, we do not need to use the robot_localization module since
+# Introduction
 
--  if there has a distance without gps, the ekf fusion node may have large noise.
-- the ekf node in robot_localization module need a 9-axis IMU
+LIO_SAM is only suitable for 9-axis IMU, for the following reasons.
+
+- the initialization module need absolute orientation to initialize the LIO system.
+- the back-end GNSS-based optimization relies on the robot_localization node, and also requires a 9-axis IMU.
+
+Therefore, only minor changes to the original code are required.  which can directly use GPS coordinates of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and external parameters between lidars and IMUs, such as Hesai.
 
 ![image-20220421102351677](README/image-20220421102351677.png)
 
@@ -14,14 +20,17 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 ![image-20220421113413972](README/image-20220421113413972.png)
 
-## Problems
+# Problems
 
-1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for test!  we will updtae the new version of codes later. **I haven't released the node of `GPS_ODOM`, because this part of the code is poorly written**, I will organize and update it later. You can first set `useGPS` to false. The test data is a section of campus of more than 10km. It was collected on a mountain road. The elevation changes greatly, the GPS data is unstable, and there is a tunnel, which is very challenging. LIO_SAM will be difficult to close the loop or crash directly in the later downhill road. You can test it yourself and find the reason. 
-2. ouster/pandar lidar + 6aixs-IMU are all ok, we will release the test data later. 
+1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for test!  we will updtae the new version of codes later. **I haven't released the node of `GPS_ODOM`, because this part of the code is poorly written**, I will organize and update it later. You can first set `useGPS` to false. 
+
+   > The test data is a section of campus of more than 10km. It was collected on a mountain road. The elevation changes greatly, the GPS data is unstable, and there is a tunnel, which is very challenging. LIO_SAM will be difficult to close the loop or may crash directly in the later downhill road. You can test it yourself and find the reason. 
+
+2. ouster/pandar lidar + 6-aixs IMU are all ok, we will release the test data. 
 
 # Run
 
-when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just make sure your vehicles are in a good position where the status of GNSS is stable encough, or you can not initialize your system successfully! 
+when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough, or you can not initialize your system successfully! 
 
 ```
 roslaunch lio_sam_6axis run.launch
@@ -85,8 +94,6 @@ Because LIO_SAM only uses the acceleration and angular velocity in the IMU data 
 
 `q_final` represents the orientation result taken from the IMU data. For the 6-axis IMU, we generally integrate our own in the SLAM system instead of directly adopting this result. But in the 9-axis IMU, the orentation part is the global attitude, that is, the result of the fusion with the magnetometer, which represents the angle between the IMU and the magnetic north pole. So here we only need to align the coordinate axis of the orentation data with the base_link, that is, multiply the lidar to the external parameter of the IMU.
 
-
-
 ## Adaptation for different types of lidar
 
 Make sure the point cloud timestamp, ring channel is ok. In addition, the lidar coordinate system should meet the REP105 standard, that is, xyz represents the front and upper right direction. Note that the structure of the point cloud is related to your lidar driver, and may not be exactly the same. The format below is for reference only.
@@ -143,9 +150,9 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(OusterPointXYZIRT,
 )
 ```
 
-## Acknowledgments
+# Acknowledgments
 
-Thanks for  [Guoqing Zhang](https://github.com/MyEvolution).
+Thanks for  [Guoqing Zhang](https://github.com/MyEvolution), Jianhao Jiao](https://github.com/gogojjh).
 
 Thanks for [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM).
 
