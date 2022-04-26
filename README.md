@@ -32,6 +32,18 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 3. I am looking for the stable GPS odom information to initialize the LIO system in the `updateInitialGuess` function of the `mapOptmization` node. Although this method works, it is not the best choice.
 
+# Data
+
+We provided a very challenging long-distance vehicle data collection. There is a tunnel scene collected in the mountain campus. The initial GPS data quality is poor, and there are large and small closed loops.
+
+You can get the campus data in  [dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4).
+
+We ensure that the coordinate systems of the lidar and IMU are consistent, and it is easy to set the external parameter matrix.
+
+![image-20220426181902940](README/image-20220426181902940.png)
+
+
+
 # Run
 
 when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! 
@@ -41,8 +53,6 @@ roslaunch lio_sam_6axis run.launch
 ```
 
 - [ ] you can get the test  [video](https://www.youtube.com/watch?v=3H-qZvEado0)
-
-- [ ] You can get the test data in  [dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4)
 
 ## Adaptation for 6-axis IMU
 
