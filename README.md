@@ -184,7 +184,7 @@ if (debugLidarTimestamp) {
 
 # Acknowledgments
 
-Thanks for  [Guoqing Zhang](https://github.com/MyEvolution), Jianhao Jiao](https://github.com/gogojjh).
+Thanks for  [Guoqing Zhang](https://github.com/MyEvolution), [Jianhao Jiao](https://github.com/gogojjh).
 
 Thanks for [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM).
 
