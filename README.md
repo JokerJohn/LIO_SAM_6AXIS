@@ -22,7 +22,7 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 # Problems
 
-1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for test!  we will update the new version of codes later. 
+1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for testing!  we will update the new version of codes later. 
 
    > LIO_SAM will be difficult to close the loop without GPS or may crash directly in the later downhill road. You can test it yourself and find the reason. 
 
@@ -55,7 +55,11 @@ We ensure that the coordinate systems of the lidar and IMU are consistent, and i
 
 ![image-20220426181902940](README/image-20220426181902940.png)
 
+Using the campus data, we provide the test videos. 
 
+- when we do not use gps, the LIO_SAM can not loop successfully! see the video here [LIO_SAM_CAMPUS](https://youtu.be/IRM9Ws2C7R8).
+
+- when we use GPS, LIO_SAM show good performance. see the videos here [LIO_SAM_GPS_CAMPUS](https://youtu.be/Jfj69AoPXao).
 
 # Run
 
@@ -217,7 +221,7 @@ if (debugLidarTimestamp) {
 
 # Acknowledgments
 
-Thanks for  [Guoqing Zhang](https://github.com/MyEvolution), [Jianhao Jiao](https://github.com/gogojjh).
+Thanks to  [Guoqing Zhang](https://github.com/MyEvolution), [Jianhao Jiao](https://github.com/gogojjh).
 
 Thanks for [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM).
 
