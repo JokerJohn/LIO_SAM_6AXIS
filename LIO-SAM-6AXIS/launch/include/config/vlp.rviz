@@ -482,8 +482,7 @@ Visualization Manager:
           Marker Topic: /lio_sam_6axis/mapping/gps_constraints
           Name: Loop constraint
           Namespaces:
-            gps_edges: true
-            gps_nodes: true
+            {}
           Queue Size: 100
           Value: true
         - Class: rviz/MarkerArray
@@ -491,8 +490,7 @@ Visualization Manager:
           Marker Topic: /lio_sam_6axis/mapping/gps_constraints
           Name: Gps constraint
           Namespaces:
-            gps_edges: true
-            gps_nodes: true
+            {}
           Queue Size: 100
           Value: true
       Enabled: true
@@ -556,25 +554,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 525.9540405273438
+      Distance: 290.18585205078125
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -120.10807037353516
-        Y: 54.82695388793945
-        Z: 19.494224548339844
+        X: 77.97479248046875
+        Y: -28.888696670532227
+        Z: 16.062742233276367
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
-      Target Frame: base_link
+      Target Frame: map
       Value: Orbit (rviz)
-      Yaw: 3.5130090713500977
+      Yaw: -1.610172986984253
     Saved: ~
 Window Geometry:
   Displays:

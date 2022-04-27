@@ -7,7 +7,7 @@ This repo may help to adapt LIO_SAM to your own sensors! It has some changes com
 
 # Introduction
 
-LIO_SAM is only suitable for 9-axis IMU, for the following reasons.
+LIO_SAM is only used for 9-axis IMU, for the following reasons.
 
 - the initialization module need absolute orientation to initialize the LIO system.
 - the back-end GNSS-based optimization relies on the robot_localization node, and also requires a 9-axis IMU.
@@ -22,11 +22,11 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 # Problems
 
-1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for test!  we will update the new version of codes later. **I haven't released the node of `GPS_ODOM`, because this part of the code is poorly written**, I will organize and update it later. You can first set `useGPS` to false. 
+1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for test!  we will update the new version of codes later. 
 
-   > The test data is a section of campus of more than 10km. It was collected on a mountain road. The elevation changes greatly, the GPS data is unstable, and there is a tunnel, which is very challenging. LIO_SAM will be difficult to close the loop or may crash directly in the later downhill road. You can test it yourself and find the reason. 
+   > LIO_SAM will be difficult to close the loop without GPS or may crash directly in the later downhill road. You can test it yourself and find the reason. 
 
-2. ouster/pandar lidar + 6-aixs IMU are all ok, we will release the test data. 
+2. **ouster+stim300**/**pandar + 6-aixs IMU** are all available, we will release the test data around June. 
 
    > Please note that some people have different ways of modifying the timestamps in the driver module when using ouster. Remember to modify the unit of time in the timestamps.
 
@@ -34,11 +34,24 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 # Data
 
-We provided a very challenging long-distance vehicle data collection. There is a tunnel scene collected in the mountain campus. The initial GPS data quality is poor, and there are large and small closed loops.
+We provided a very challenging long-distance vehicle dataset. You can get the campus data in  [dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4).
 
-You can get the campus data in  [dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4).
+- more than 10km.
 
-We ensure that the coordinate systems of the lidar and IMU are consistent, and it is easy to set the external parameter matrix.
+- the campus is on a mountain, and the data is collected from the mountainside to the top of the mountain and finally to the foot of the mountain, and there is a large elevation change.
+
+- there is a tunnel scene collected in the mountain campus at the beginning. It's hard for us to initialize the LIO system with GNSS. 
+
+ > In the tunnel, the LIO is degraded, and the drift is large. GPS data within a short distance before and after entering or leaving the tunnel cannot be trusted, because GPS takes a certain amount of time to converge, so **an incorrect covariance threshold may cause the pose graph to introduce more error constraints**, as shown in the following figure(the red lines in the tunnel maybe wrong constrains).
+![image-20220428045314514](README/image-20220428045314514.png)
+
+- The data quality of the initial GPS mainly is poor, and there are large and small closed loops.
+
+> in this case, only use the radius search method, the LIO_SAM can not find the big loop without GPS.
+>
+> ![image-20220428050315811](README/image-20220428050315811.png)
+
+We ensure that the coordinate systems of the lidar and IMU are consistent, and it is easy to set the extrinsic matrix.
 
 ![image-20220426181902940](README/image-20220426181902940.png)
 
@@ -52,7 +65,27 @@ when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. J
 roslaunch lio_sam_6axis run.launch
 ```
 
-- [ ] you can get the test  [video](https://www.youtube.com/watch?v=3H-qZvEado0)
+when you set the `useGPS` true, you may get the following los. It means that these gps points are used for optimization.
+
+```bash
+[ INFO] [1651092699.914940274]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092700.516013418]: curr gps pose: 13.806815, 7.928380 , 5.147980
+[ INFO] [1651092700.516037958]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092700.516045476]: curr gps pose: 13.868968, 8.179937 , 4.978980
+[ INFO] [1651092700.516052422]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092701.119307186]: curr gps pose: 13.958420, 8.710549 , 4.713979
+[ INFO] [1651092701.119338426]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092701.119350367]: curr gps pose: 14.000141, 8.975948 , 4.566978
+[ INFO] [1651092701.119358467]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092701.921194579]: curr gps pose: 13.919786, 9.765131 , 4.245977
+[ INFO] [1651092701.921231754]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092701.921241692]: curr gps pose: 13.874458, 10.000446 , 4.155977
+[ INFO] [1651092701.921249414]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092702.922381107]: curr gps pose: 13.657435, 10.739058 , 3.878976
+[ INFO] [1651092702.922419785]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092702.922437325]: curr gps pose: 13.590818, 10.892428 , 3.841976
+[ INFO] [1651092702.922451226]: curr gps cov: 11.022400, 11.022400 , 176.358400
+```
 
 ## Adaptation for 6-axis IMU
 

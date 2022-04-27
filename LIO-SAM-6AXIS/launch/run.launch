@@ -14,9 +14,11 @@
 
     <!--- Run Navsat -->
     <!--    <include file="$(find lio_sam)/launch/include/module_navsat.launch" />-->
-    <include file="$(find global_fusion)/launch/debug_gps.launch"/>
+    <!--    <include file="$(find global_fusion)/launch/debug_gps.launch"/>-->
+    <node pkg="lio_sam_6axis" type="lio_sam_6axis_gpsOdometry" name="lio_sam_6axis_gpsOdometry"/>
 
     <!--- Run Rviz-->
-    <node pkg="rviz" type="rviz" name="$(arg project)_rviz" args="-d $(find lio_sam_6axis)/launch/include/config/vlp.rviz" />
+    <node pkg="rviz" type="rviz" name="$(arg project)_rviz"
+          args="-d $(find lio_sam_6axis)/launch/include/config/vlp.rviz"/>
 
 </launch>

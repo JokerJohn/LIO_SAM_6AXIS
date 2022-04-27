@@ -406,14 +406,14 @@ class mapOptimization : public ParamServer {
     cout << "**********************save map service******************************" << endl;
     cout << "Saving map to pcd files ..." << endl;
     if (req.destination.empty()) saveMapDirectory = savePCDDirectory;
-//    else saveMapDirectory = std::getenv("HOME") + req.destination;
+    //    else saveMapDirectory = std::getenv("HOME") + req.destination;
     cout << "Save destination: " << saveMapDirectory << endl;
-    // create directory and remove old files;
-//    int unused = system((std::string("exec rm -r ") + saveMapDirectory).c_str());
-//    unused = system((std::string("mkdir -p ") + saveMapDirectory).c_str());
-    // save key frame transformations
-//    pcl::io::savePCDFileBinary(savePCDDirectory + "/trajectory.pcd", *cloudKeyPoses3D);
-//    pcl::io::savePCDFileBinary(savePCDDirectory + "/transformations.pcd", *cloudKeyPoses6D);
+    //    create directory and remove old files;
+    //    int unused = system((std::string("exec rm -r ") + saveMapDirectory).c_str());
+    //    unused = system((std::string("mkdir -p ") + saveMapDirectory).c_str());
+    //    save key frame transformations
+    //    pcl::io::savePCDFileBinary(savePCDDirectory + "/trajectory.pcd", *cloudKeyPoses3D);
+    //    pcl::io::savePCDFileBinary(savePCDDirectory + "/transformations.pcd", *cloudKeyPoses6D);
     // extract global point cloud map
     pcl::PointCloud<PointType>::Ptr globalCornerCloud(new pcl::PointCloud<PointType>());
     pcl::PointCloud<PointType>::Ptr globalCornerCloudDS(new pcl::PointCloud<PointType>());
@@ -436,35 +436,33 @@ class mapOptimization : public ParamServer {
     if (req.resolution != 0) {
       resolution = req.resolution;
     } else {
-      resolution = 0.08;
+      resolution = 0.1;
     }
-
     cout << "\n\nSave resolution: " << resolution << endl;
 
     // down-sample and save corner cloud
     downSizeFilterCorner.setInputCloud(globalCornerCloud);
     downSizeFilterCorner.setLeafSize(req.resolution, req.resolution, req.resolution);
-//      downSizeFilterCorner.setLeafSize(0.5, 0.5, 0.5);
     downSizeFilterCorner.filter(*globalCornerCloudDS);
-//      pcl::io::savePCDFileBinary(savePCDDirectory + "/CornerMap.pcd", *globalCornerCloudDS);
+    pcl::io::savePCDFileBinary(savePCDDirectory + "/CornerMap.pcd", *globalCornerCloudDS);
+
     // down-sample and save surf cloud
     downSizeFilterSurf.setInputCloud(globalSurfCloud);
     downSizeFilterSurf.setLeafSize(resolution, resolution, resolution);
-//      downSizeFilterSurf.setLeafSize(0.5, 0.5, 0.5);
     downSizeFilterSurf.filter(*globalSurfCloudDS);
-//      pcl::io::savePCDFileBinary(savePCDDirectory + "/SurfMap.pcd", *globalSurfCloudDS);
-//    } else {
+    pcl::io::savePCDFileBinary(savePCDDirectory + "/SurfMap.pcd", *globalSurfCloudDS);
+    //    } else {
     // save corner cloud
-//      pcl::io::savePCDFileBinary(savePCDDirectory + "/CornerMap.pcd", *globalCornerCloud);
+    //      pcl::io::savePCDFileBinary(savePCDDirectory + "/CornerMap.pcd", *globalCornerCloud);
     // save surf cloud
-//      pcl::io::savePCDFileBinary(savePCDDirectory + "/SurfMap.pcd", *globalSurfCloud);
-//    }
+    //      pcl::io::savePCDFileBinary(savePCDDirectory + "/SurfMap.pcd", *globalSurfCloud);
+    //    }
 
     // save global point cloud map
     *globalMapCloud += *globalCornerCloud;
     *globalMapCloud += *globalSurfCloud;
 
-    ROS_INFO("rotate point cloud");
+    // ROS_INFO("rotate point cloud");
     for (int j = 0; j < globalMapCloud->points.size(); ++j) {
       PointType &pt = globalMapCloud->points.at(j);
       Eigen::Vector3d translation(pt.x, pt.y, pt.z);
@@ -475,109 +473,17 @@ class mapOptimization : public ParamServer {
       pt.z = translation[2];
     }
 
-//    string pcd_path = saveMapDirectory + file_name + "_body_service.pcd";
-    string pcd_path = pcd_suffix + "body_service.pcd";
-//    int ret = pcl::io::savePCDFileBinary(savePCDDirectory + "/GlobalMap.pcd", *globalMapCloud);
-    int ret = pcl::io::savePCDFileBinary(pcd_path, *globalMapCloud);
+    int ret = pcl::io::savePCDFileBinary(pcd_suffix + "body_service.pcd", *globalMapCloud);
     res.success = ret == 0;
 
     downSizeFilterCorner.setLeafSize(mappingCornerLeafSize, mappingCornerLeafSize, mappingCornerLeafSize);
     downSizeFilterSurf.setLeafSize(mappingSurfLeafSize, mappingSurfLeafSize, mappingSurfLeafSize);
 
     cout << "****************************************************" << endl;
-    cout << "Saving map to pcd files completed: " << pcd_path << endl;
+    cout << "Saving map to pcd files completed: " << endl;
 
     return true;
   }
-
-  /* void static SigHandle(int sig) {
-
-     if (savePCD == false)
-       return;
-
-     lio_sam_6axis::save_mapRequest req;
-     lio_sam_6axis::save_mapResponse res;
-
-     if (!saveMapService(req, res)) {
-       cout << "Fail to save map" << endl;
-     }
-
-     pcl::PointCloud<PointType>::Ptr globalCornerCloud(new pcl::PointCloud<PointType>());
-     pcl::PointCloud<PointType>::Ptr globalCornerCloudDS(new pcl::PointCloud<PointType>());
-     pcl::PointCloud<PointType>::Ptr globalSurfCloud(new pcl::PointCloud<PointType>());
-     pcl::PointCloud<PointType>::Ptr globalSurfCloudDS(new pcl::PointCloud<PointType>());
-     pcl::PointCloud<PointType>::Ptr globalFeatureMapCloud(new pcl::PointCloud<PointType>());
-     pcl::PointCloud<PointType>::Ptr globalMapCloudDS(new pcl::PointCloud<PointType>());
-     pcl::PointCloud<PointType>::Ptr globalMapCloud(new pcl::PointCloud<PointType>());
-     for (int i = 0; i < (int) cloudKeyPoses3D->size(); i++) {
-       *globalCornerCloud += *transformPointCloud(cornerCloudKeyFrames[i], &cloudKeyPoses6D->points[i]);
-       *globalSurfCloud += *transformPointCloud(surfCloudKeyFrames[i], &cloudKeyPoses6D->points[i]);
-       *globalMapCloud += *transformPointCloud(laserCloudRawKeyFrames[i], &cloudKeyPoses6D->points[i]);
-       cout << "\r" << std::flush << "Processing feature cloud " << i << " of " << cloudKeyPoses6D->size() << " ...";
-     }
-     // down-sample and save corner cloud
-     downSizeFilterCorner.setInputCloud(globalCornerCloud);
-     downSizeFilterCorner.filter(*globalCornerCloudDS);
- //    pcl::io::savePCDFileASCII(savePCDDirectory + "cloudCorner.pcd", *globalCornerCloudDS);
-     // down-sample and save surf cloud
-     downSizeFilterSurf.setInputCloud(globalSurfCloud);
-     downSizeFilterSurf.filter(*globalSurfCloudDS);
- //    pcl::io::savePCDFileASCII(savePCDDirectory + "cloudSurf.pcd", *globalSurfCloudDS);
-     // down-sample and save global point cloud map
-     *globalFeatureMapCloud += *globalCornerCloud;
-     *globalFeatureMapCloud += *globalSurfCloud;
-
-     downSizeFilterCorner.setLeafSize(0.08, 0.08, 0.08);
-     downSizeFilterCorner.setInputCloud(globalMapCloud);
-     downSizeFilterCorner.filter(*globalMapCloudDS);
-
- //    pcl::io::savePCDFileASCII(savePCDDirectory + "map_liosam.pcd", *globalMapCloudDS);
-
-     globalMapCloudDS->height = 1;
-     globalMapCloudDS->width = globalMapCloudDS->points.size();
-     globalFeatureMapCloud->height = 1;
-     globalFeatureMapCloud->width = globalFeatureMapCloud->points.size();
-
-     // all cloud must rotate to imu axis
-     ROS_INFO("rotate point cloud");
-     for (int j = 0; j < globalMapCloudDS->points.size(); ++j) {
-       PointType &pt = globalMapCloudDS->points.at(j);
-       Eigen::Vector3d translation(pt.x, pt.y, pt.z);
-       translation = q_body_sensor * translation + t_body_sensor;
-
-       pt.x = translation[0];
-       pt.y = translation[1];
-       pt.z = translation[2];
-     }
-     for (int j = 0; j < globalFeatureMapCloud->points.size(); ++j) {
-       PointType &pt = globalFeatureMapCloud->points.at(j);
-       Eigen::Vector3d translation(pt.x, pt.y, pt.z);
-       translation = q_body_sensor * translation + t_body_sensor;
-
-       pt.x = translation[0];
-       pt.y = translation[1];
-       pt.z = translation[2];
-     }
- //    Eigen::Quaterniond quad(pose.pose.orientation.w, pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z);
- //    Eigen::Vector3d translation(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
- //    // transform the estimated poses into the targeted coordinate system
- //    quad = q_body_sensor * quad;
- //    translation = q_body_sensor * translation + t_body_sensor;
-
-     string pcd_path = savePCDDirectory + scene_name + "_liosam_body_raw.pcd";
-     string pcd_path2 = savePCDDirectory + scene_name + "_liosam_body.pcd";
-     pcl::io::savePCDFileASCII(pcd_path, *globalMapCloudDS);
-     pcl::io::savePCDFileASCII(pcd_path2, *globalFeatureMapCloud);
-     cout << "********************** save map terminal******************************" << endl;
-     cout << "Saving map to pcd files completed, " << pcd_path << endl;
-     downSizeFilterCorner.setLeafSize(mappingCornerLeafSize, mappingCornerLeafSize, mappingCornerLeafSize);
-     downSizeFilterSurf.setLeafSize(mappingSurfLeafSize, mappingSurfLeafSize, mappingSurfLeafSize);
-
-     // 覆盖原来的Ctrl+C中断函数，保证能顺利保存地图
-     ROS_INFO("shutting down!");
-     ros::shutdown();
-     exit(0);
-   }*/
 
   void visualizeGlobalMapThread() {
     ros::Rate rate(0.2);
@@ -596,16 +502,16 @@ class mapOptimization : public ParamServer {
     // save pose graph
     if (loopClosureEnableFlag) {
       pcd_suffix = savePCDDirectory + scene_name + "_liosam_loop_";
-      // 同事保存g2o文件
+      // save g2o file
       gtsam::writeG2o(gtSAMgraph, isamCurrentEstimate, pcd_suffix + "pose_graph.g2o");
       ROS_WARN("Save map. pose size: %d", cloudKeyPoses3D->size());
     } else {
       pcd_suffix = savePCDDirectory + scene_name + "_liosam_";
     }
 
-    if (!saveMapService(req, res)) {
-      cout << "Fail to save map" << endl;
-    }
+    //    if (!saveMapService(req, res)) {
+    //      cout << "Fail to save map" << endl;
+    //    }
 
     pcl::PointCloud<PointType>::Ptr globalCornerCloud(new pcl::PointCloud<PointType>());
     pcl::PointCloud<PointType>::Ptr globalCornerCloudDS(new pcl::PointCloud<PointType>());
@@ -623,27 +529,26 @@ class mapOptimization : public ParamServer {
     // down-sample and save corner cloud
     downSizeFilterCorner.setInputCloud(globalCornerCloud);
     downSizeFilterCorner.filter(*globalCornerCloudDS);
-//    pcl::io::savePCDFileASCII(savePCDDirectory + "cloudCorner.pcd", *globalCornerCloudDS);
+    pcl::io::savePCDFileASCII(savePCDDirectory + "cloudCorner.pcd", *globalCornerCloudDS);
+
     // down-sample and save surf cloud
     downSizeFilterSurf.setInputCloud(globalSurfCloud);
     downSizeFilterSurf.filter(*globalSurfCloudDS);
-//    pcl::io::savePCDFileASCII(savePCDDirectory + "cloudSurf.pcd", *globalSurfCloudDS);
+    pcl::io::savePCDFileASCII(savePCDDirectory + "cloudSurf.pcd", *globalSurfCloudDS);
     // down-sample and save global point cloud map
     *globalFeatureMapCloud += *globalCornerCloud;
     *globalFeatureMapCloud += *globalSurfCloud;
 
-    downSizeFilterCorner.setLeafSize(0.08, 0.08, 0.08);
+    downSizeFilterCorner.setLeafSize(0.1, 0.1, 0.1);
     downSizeFilterCorner.setInputCloud(globalMapCloud);
     downSizeFilterCorner.filter(*globalMapCloudDS);
-
-//    pcl::io::savePCDFileASCII(savePCDDirectory + "map_liosam.pcd", *globalMapCloudDS);
 
     globalMapCloudDS->height = 1;
     globalMapCloudDS->width = globalMapCloudDS->points.size();
     globalFeatureMapCloud->height = 1;
     globalFeatureMapCloud->width = globalFeatureMapCloud->points.size();
 
-    // all cloud must rotate to imu axis
+    // all cloud must rotate to body axis
     ROS_INFO("rotate point cloud");
     for (int j = 0; j < globalMapCloudDS->points.size(); ++j) {
       PointType &pt = globalMapCloudDS->points.at(j);
@@ -664,20 +569,11 @@ class mapOptimization : public ParamServer {
       pt.z = translation[2];
     }
 
-
-
-//    Eigen::Quaterniond quad(pose.pose.orientation.w, pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z);
-//    Eigen::Vector3d translation(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
-//    // transform the estimated poses into the targeted coordinate system
-//    quad = q_body_sensor * quad;
-//    translation = q_body_sensor * translation + t_body_sensor;
-
-    string pcd_path = pcd_suffix + "body_raw.pcd";
-    string pcd_path2 = pcd_suffix + "body.pcd";
-    pcl::io::savePCDFileASCII(pcd_path, *globalMapCloudDS);
-    pcl::io::savePCDFileASCII(pcd_path2, *globalFeatureMapCloud);
+    pcl::io::savePCDFileASCII(pcd_suffix + "body_raw.pcd", *globalMapCloudDS);
+    pcl::io::savePCDFileASCII(pcd_suffix + "body_feature_map.pcd", *globalFeatureMapCloud);
     cout << "********************** save map terminal******************************" << endl;
-    cout << "Saving map to pcd files completed, " << pcd_path << endl;
+    cout << "Saving map to pcd files completed, " << endl;
+
     downSizeFilterCorner.setLeafSize(mappingCornerLeafSize, mappingCornerLeafSize, mappingCornerLeafSize);
     downSizeFilterSurf.setLeafSize(mappingSurfLeafSize, mappingSurfLeafSize, mappingSurfLeafSize);
   }
@@ -1031,6 +927,7 @@ class mapOptimization : public ParamServer {
     markerNode.color.g = 0;
     markerNode.color.b = 1;
     markerNode.color.a = 1;
+
     // loop edges
     visualization_msgs::Marker markerEdge;
     markerEdge.header.frame_id = odometryFrame;
@@ -1049,12 +946,14 @@ class mapOptimization : public ParamServer {
     for (auto it = gpsIndexContainer.begin(); it != gpsIndexContainer.end(); ++it) {
       int key_cur = it->first;
       int key_pre = it->second;
+
       geometry_msgs::Point p;
       p.x = copy_cloudKeyPoses6D->points[key_cur].x;
       p.y = copy_cloudKeyPoses6D->points[key_cur].y;
       p.z = copy_cloudKeyPoses6D->points[key_cur].z;
       markerNode.points.push_back(p);
       markerEdge.points.push_back(p);
+
       p.x = cloudKeyGPSPoses3D->points[key_pre].x;
       p.y = cloudKeyGPSPoses3D->points[key_pre].y;
       p.z = cloudKeyGPSPoses3D->points[key_pre].z;
@@ -1906,7 +1805,6 @@ class mapOptimization : public ParamServer {
         else
           lastGPSPoint = curGPSPoint;
 
-
         gtsam::Vector Vector3(3);
         Vector3 << max(noise_x, 1.0f), max(noise_y, 1.0f), max(noise_z, 1.0f);
         noiseModel::Diagonal::shared_ptr gps_noise = noiseModel::Diagonal::Variances(Vector3);
@@ -2232,20 +2130,7 @@ class mapOptimization : public ParamServer {
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "lio_sam_6axis");
-
-//  string savePCDDirectory = argv[1];
-//  string scene_name = argv[2];
-
   mapOptimization MO;
-  // 传参进来
-//  MO.savePCDDirectory = savePCDDirectory;
-//  MO.scene_name = scene_name;
-
-
-//  std::cout<< argc<< std::endl;
-
-
-
   ROS_INFO("\033[1;32m----> Map Optimization Started.\033[0m");
 
   std::thread loopthread(&mapOptimization::loopClosureThread, &MO);

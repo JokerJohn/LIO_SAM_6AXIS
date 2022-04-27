@@ -183,7 +183,7 @@ class ImageProjection : public ParamServer {
     std::lock_guard<std::mutex> lock1(imuLock);
     imuQueue.push_back(thisImu);
 
-    if(debugImu){
+    if (debugImu) {
       // debug IMU data
       cout << std::setprecision(6);
       cout << "IMU acc: " << endl;
