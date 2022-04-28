@@ -57,9 +57,9 @@ We ensure that the coordinate systems of the lidar and IMU are consistent, and i
 
 Using the campus data, we provide the test videos. 
 
-- when we do not use gps, the LIO_SAM can not loop successfully! see the video here [Youtube](https://youtu.be/IRM9Ws2C7R8)，[B站](https://www.bilibili.com/video/BV1hi4y1m7c7?spm_id_from=333.999.0.0). 
+- when we do not use gps, the LIO_SAM can not loop successfully! see the video here [Youtube](https://youtu.be/IRM9Ws2C7R8)，[Bilibili](https://www.bilibili.com/video/BV1hi4y1m7c7?spm_id_from=333.999.0.0). 
 
-- when we use GPS, LIO_SAM show good performance. see the videos here [Youtube](https://youtu.be/Jfj69AoPXao)，[B站](https://www.bilibili.com/video/BV1o541117sr/?spm_id_from=333.788).
+- when we use GPS, LIO_SAM show good performance. see the videos here [Youtube](https://youtu.be/Jfj69AoPXao)，[Bilibili](https://www.bilibili.com/video/BV1o541117sr/?spm_id_from=333.788).
 
 # Run
 
@@ -178,18 +178,71 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(PandarPointXYZIRT,
 )
 ```
 
+We strongly recommend that **you first adjust the coordinate system of the pandar lidar (because it is the most special) to be consistent with the REP105**, and then adjust the LIDAR2IMU extrinsincs. You just need to modify the `cachePointCloud` function in `imageProjection.cpp`
+
+```c++
+    if (sensor == SensorType::VELODYNE || sensor == SensorType::LIVOX) {
+      pcl::moveFromROSMsg(currentCloudMsg, *laserCloudIn);
+    } else if (sensor == SensorType::OUSTER) {
+      // Convert to Velodyne format
+      pcl::moveFromROSMsg(currentCloudMsg, *tmpOusterCloudIn);
+      laserCloudIn->points.resize(tmpOusterCloudIn->size());
+      laserCloudIn->is_dense = tmpOusterCloudIn->is_dense;
+      for (size_t i = 0; i < tmpOusterCloudIn->size(); i++) {
+        auto &src = tmpOusterCloudIn->points[i];
+        auto &dst = laserCloudIn->points[i];
+        dst.x = src.x;
+        dst.y = src.y;
+        dst.z = src.z;
+        dst.intensity = src.intensity;
+        dst.ring = src.ring;
+        //dst.time = src.t * 1e-9f;
+        dst.time = src.time;
+      }
+    } else if (sensor == SensorType::HESAI) {
+      // Convert to Velodyne format
+      pcl::moveFromROSMsg(currentCloudMsg, *tmpPandarCloudIn);
+      laserCloudIn->points.resize(tmpPandarCloudIn->size());
+      laserCloudIn->is_dense = tmpPandarCloudIn->is_dense;
+      double time_begin = tmpPandarCloudIn->points[0].timestamp;
+      for (size_t i = 0; i < tmpPandarCloudIn->size(); i++) {
+        auto &src = tmpPandarCloudIn->points[i];
+        auto &dst = laserCloudIn->points[i];
+        // please note that pandar frame: X Y Z ->  left back top
+        // so when you transform it, the newly X0 maybe -Y, Y0 = X, Z keep the same
+        // you can also multiply a rotation matrix
+        dst.x = src.y * -1;
+        dst.y = src.x;
+        //        dst.x = src.x;
+        //        dst.y = src.y;
+        dst.z = src.z;
+        dst.intensity = src.intensity;
+        dst.ring = src.ring;
+        dst.time = src.timestamp - time_begin; // s
+      }
+    } else {
+      ROS_ERROR_STREAM("Unknown sensor type: " << int(sensor));
+      ros::shutdown();
+    }
+```
+
+Now your lidar base_link  is REP105 standard, you just need to regard it as a Velodyne lidar to adjust the extrinsincs between IMU. Here is my notes.
+
+![8fa85ad74f6255802937f9470775774](README/161970853-f762f7c7-8876-463f-b58e-85622c87f891.jpg)
+
 #### Ouster
 
-The point cloud timestamp of ouster lidar is not necessarily ustc time。
+The point cloud timestamp of ouster lidar is not necessarily ustc time. **Note the data type and order of the time channel.**
 
 ```c++
 struct OusterPointXYZIRT {
   PCL_ADD_POINT4D;
   float intensity;
-//  uint32_t time;
+    // some people may modity the driver when they use the ouster lidar
+	//  uint32_t time;
   uint16_t reflectivity;
   uint8_t ring;
-  std::uint16_t ambient;  // additional property of p.ouster
+  std::uint16_t ambient; 
   float time;
   uint16_t noise;
   uint32_t range;
