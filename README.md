@@ -57,9 +57,9 @@ We ensure that the coordinate systems of the lidar and IMU are consistent, and i
 
 Using the campus data, we provide the test videos. 
 
-- when we do not use gps, the LIO_SAM can not loop successfully! see the video here [LIO_SAM_CAMPUS](https://youtu.be/IRM9Ws2C7R8).
+- when we do not use gps, the LIO_SAM can not loop successfully! see the video here [Youtube](https://youtu.be/IRM9Ws2C7R8)，[B站](https://www.bilibili.com/video/BV1hi4y1m7c7?spm_id_from=333.999.0.0). 
 
-- when we use GPS, LIO_SAM show good performance. see the videos here [LIO_SAM_GPS_CAMPUS](https://youtu.be/Jfj69AoPXao).
+- when we use GPS, LIO_SAM show good performance. see the videos here [Youtube](https://youtu.be/Jfj69AoPXao)，[B站](https://www.bilibili.com/video/BV1o541117sr/?spm_id_from=333.788).
 
 # Run
 
