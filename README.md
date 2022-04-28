@@ -59,7 +59,11 @@ Using the campus data, we provide the test videos.
 
 - when we do not use gps, the LIO_SAM can not loop successfully! see the video here [Youtube](https://youtu.be/IRM9Ws2C7R8)，[Bilibili](https://www.bilibili.com/video/BV1hi4y1m7c7?spm_id_from=333.999.0.0). 
 
-- when we use GPS, LIO_SAM show good performance. see the videos here [Youtube](https://youtu.be/Jfj69AoPXao)，[Bilibili](https://www.bilibili.com/video/BV1o541117sr/?spm_id_from=333.788).
+![image-20220428223306035](README/image-20220428223306035.png)
+
+- when we use GPS, LIO_SAM show good performance, especially for the loop clouser. see the videos here [Youtube](https://youtu.be/Jfj69AoPXao)，[Bilibili](https://www.bilibili.com/video/BV1o541117sr/?spm_id_from=333.788).
+
+![image-20220428223411955](README/image-20220428223411955.png)
 
 # Run
 
