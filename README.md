@@ -1,7 +1,7 @@
 # LIO_SAM_6AXIS
-This repo may help to adapt LIO_SAM to your own sensors! It has some changes comparing with the origin system.
+This repo may help to adapt LIO_SAM for your own sensors! It has some changes comparing with the origin system.
 
-- support with a 6-axis IMU, since the orientation information of IMU is not used in state estimation module.
+- support a 6-axis IMU, since the orientation information of IMU is not used in state estimation module.
 - support normal GNSS, we do not need to adapt for the robot_localization node.
 - support the gps constraint visualization module to help debugging the normal GNSS.(the following picture)
 
@@ -32,6 +32,18 @@ we add the gps constraint visualization module to help debugging the normal gps(
 ![red line reprents gps constraint](README/image-20220525042950882.png)
 
 # Run
+
+### Dependences
+
+the same as LIO_SAM.
+
+my previous and current system: 
+
+Ubuntu18.04 /PCL1.8/OpenCV4.5/GTSAM4.0.2
+
+Ubuntu20.04/PCL1.10/OpenCV3.4.16/GTSAM4.1
+
+### Single Sequence
 
 when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! 
 
