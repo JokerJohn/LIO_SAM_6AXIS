@@ -2,24 +2,25 @@ cmake_minimum_required(VERSION 2.8.3)
 project(lio_sam_6axis)
 
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -pthread")
 
 find_package(catkin REQUIRED COMPONENTS
-  tf
-  roscpp
-  rospy
-  cv_bridge
-  # pcl library
-  pcl_conversions
-  # msgs
-  std_msgs
-  sensor_msgs
-  geometry_msgs
-  nav_msgs
-  message_generation
-  visualization_msgs
-)
+        tf
+        roscpp
+        rospy
+        cv_bridge
+        # pcl library
+        pcl_conversions
+        # msgs
+        std_msgs
+        sensor_msgs
+        geometry_msgs
+        nav_msgs
+        message_generation
+        visualization_msgs
+        rosbag
+        )
 
 find_package(OpenMP REQUIRED)
 find_package(PCL REQUIRED QUIET)
@@ -27,54 +28,54 @@ find_package(OpenCV REQUIRED QUIET)
 find_package(GTSAM REQUIRED QUIET)
 
 add_message_files(
-  DIRECTORY msg
-  FILES
-  cloud_info.msg
+        DIRECTORY msg
+        FILES
+        cloud_info.msg
 )
 
 add_service_files(
-  DIRECTORY srv
-  FILES
-  save_map.srv
+        DIRECTORY srv
+        FILES
+        save_map.srv
 )
 
 generate_messages(
-  DEPENDENCIES
-  geometry_msgs
-  std_msgs
-  nav_msgs
-  sensor_msgs
+        DEPENDENCIES
+        geometry_msgs
+        std_msgs
+        nav_msgs
+        sensor_msgs
 )
 
 catkin_package(
-  INCLUDE_DIRS include
-  DEPENDS PCL GTSAM
+        INCLUDE_DIRS include
+        DEPENDS PCL GTSAM
 
-  CATKIN_DEPENDS
-  std_msgs
-  nav_msgs
-  geometry_msgs
-  sensor_msgs
-  message_runtime
-  message_generation
-  visualization_msgs
+        CATKIN_DEPENDS
+        std_msgs
+        nav_msgs
+        geometry_msgs
+        sensor_msgs
+        message_runtime
+        message_generation
+        visualization_msgs
 )
 
 # include directories
 include_directories(
-	include
-	${catkin_INCLUDE_DIRS}
-	${PCL_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-	${GTSAM_INCLUDE_DIR}
+        include
+        ${catkin_INCLUDE_DIRS}
+        ${PCL_INCLUDE_DIRS}
+        ${OpenCV_INCLUDE_DIRS}
+        ${GTSAM_INCLUDE_DIR}
 )
 
 # link directories
 link_directories(
-	include
-	${PCL_LIBRARY_DIRS}
-  ${OpenCV_LIBRARY_DIRS}
-  ${GTSAM_LIBRARY_DIRS}
+        include
+        ${PCL_LIBRARY_DIRS}
+        ${OpenCV_LIBRARY_DIRS}
+        ${GTSAM_LIBRARY_DIRS}
 )
 
 ###########
@@ -97,7 +98,7 @@ add_dependencies(${PROJECT_NAME}_featureExtraction ${catkin_EXPORTED_TARGETS} ${
 target_link_libraries(${PROJECT_NAME}_featureExtraction ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
 # Mapping Optimization
-add_executable(${PROJECT_NAME}_mapOptmization src/mapOptmizationGps.cpp)
+add_executable(${PROJECT_NAME}_mapOptmization src/mapOptmizationGps.cpp src/dataSaver.cpp)
 add_dependencies(${PROJECT_NAME}_mapOptmization ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 target_compile_options(${PROJECT_NAME}_mapOptmization PRIVATE ${OpenMP_CXX_FLAGS})
 target_link_libraries(${PROJECT_NAME}_mapOptmization ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${OpenMP_CXX_FLAGS} gtsam)

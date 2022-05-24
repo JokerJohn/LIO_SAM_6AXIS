@@ -16,6 +16,7 @@ lio_sam_6axis:
 
   # GPS Settings
   useGPS: true
+  gpsFrequence: 10                            # set proper gps frequence to align gps and lidar timestamp
   useImuHeadingInitialization: true           # if using GPS data, set to "true"
   useGpsElevation: true                      # if GPS elevation is bad, set to "false"
   gpsCovThreshold: 13                        # m^2, threshold for using GPS data
@@ -24,10 +25,11 @@ lio_sam_6axis:
   # debug setting
   debugLidarTimestamp: false
   debugImu: false
+  debugGps: true
 
   # Export settings
   savePCD: false                              # https://github.com/TixiaoShan/LIO-SAM/issues/3
-  savePCDDirectory: "/Downloads/LOAM/"        # in your home folder, starts and ends with "/". Warning: the code deletes "LOAM" folder then recreates it. See "mapOptimization" for implementation
+  savePCDDirectory: "/Downloads/LOAM/"        # actually we do not use the floder to save maps
 
   sensor: velodyne                            # lidar sensor type, 'velodyne' or 'ouster' or 'livox' or 'hesai'
   N_SCAN: 16                                  # number of lidar channel (i.e., Velodyne/Ouster: 16, 32, 64, 128, Livox Horizon: 6)
@@ -45,6 +47,7 @@ lio_sam_6axis:
   imuRPYWeight: 0.01
 
   # Extrinsics (lidar -> IMU)
+  imu_type: 0   # 0: 6axis, 1:9 axis
   extrinsicTrans: [ 0.0, 0.0, 0.0 ]
   extrinsicRot: [ 1, 0, 0,
                   0, 1, 0,
