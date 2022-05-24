@@ -57,7 +57,7 @@ when you want to test on multi-sequence rosbag with the same set of sensor equip
 2. set your sequence name (`plat_data_pair_list`) 
 3. source your workspace(`source devel/setup.zsh` )
 
-run the script
+4. run the script
 
 ```python
 python3 src/LIO-SAM-6AXIS/scripts/lio_loop_batch.py
