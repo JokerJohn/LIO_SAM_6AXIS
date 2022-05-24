@@ -20,6 +20,69 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 ![GPS constrain visualization](README/image-20220421113413972.png)
 
+
+
+## Latest Update Logs(2022-05-23)
+
+- add data saver to save map pcd、g2o files、odom.txt in KITTI or TUM format, also rosbag to save distorted point cloud and optimized odomtry.
+- fix the bugs of gps constraint visualization module
+- fix the bugs of the timestamp alignment between gps and lidar. You should to set a proper gps frequence.
+- add the batch running scripts to get the LIO_SAM_6AXIS results of multi-sequence automatically. You only need to set the rosbag file path and file name.
+
+![red line reprents gps constraint](README/image-20220525042950882.png)
+
+# Run
+
+when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! 
+
+```
+roslaunch lio_sam_6axis run.launch
+```
+
+when you set the `useGPS` true, you may get the following los. It means that these gps points are used for optimization.
+
+```bash
+[ INFO] [1651092699.914940274]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092700.516013418]: curr gps pose: 13.806815, 7.928380 , 5.147980
+[ INFO] [1651092700.516037958]: curr gps cov: 11.022400, 11.022400 , 176.358400
+[ INFO] [1651092700.516045476]: curr gps pose: 13.868968, 8.179937 , 4.978980
+[ INFO] [1651092700.516052422]: curr gps cov: 11.022400, 11.022400 , 176.358400
+```
+
+### Batch Scripts
+
+when you want to test on multi-sequence rosbag with the same set of sensor equipment. You just need to modify the script `LIO-SAM-6AXIS/scripts/lio_loop_batch.py`.
+
+1. put all your rosbag info one folder , and set it as the `bag_path_download`params. set your rosbag file name(`bag_path_list`)
+2. set your sequence name (`plat_data_pair_list`) 
+3. source your workspace(`source devel/setup.zsh` )
+
+run the script
+
+```python
+python3 src/LIO-SAM-6AXIS/scripts/lio_loop_batch.py
+```
+
+### Save Results
+
+when you shut down the terminal, all the date will store in the  folder`LIO_SAM_6AXIS/data/(your sequence  name)/`.
+
+- `campus_result.bag`: inlcude 2 topics, the distorted point cloud and the optimzed odometry
+
+- `odom_tum.txt`
+
+- `optimized_odom_kitti.txt`
+
+- `optimized_odom_tum.txt`
+
+- `pose_graph.g2o`: the final pose graph g2o file
+
+- `globalmap_lidar.pcd`: global map in lidar frame.
+
+- `globalmap_imu.pcd`: global map in IMU body frame, but you need to set proper extrinsics.
+
+![image-20220525044008465](README/image-20220525044008465.png)
+
 # Problems
 
 1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for testing!  we will update the new version of codes later. 
@@ -65,23 +128,7 @@ Using the campus data, we provide the test videos.
 
 ![image-20220428223411955](README/image-20220428223411955.png)
 
-# Run
 
-when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! 
-
-```
-roslaunch lio_sam_6axis run.launch
-```
-
-when you set the `useGPS` true, you may get the following los. It means that these gps points are used for optimization.
-
-```bash
-[ INFO] [1651092699.914940274]: curr gps cov: 11.022400, 11.022400 , 176.358400
-[ INFO] [1651092700.516013418]: curr gps pose: 13.806815, 7.928380 , 5.147980
-[ INFO] [1651092700.516037958]: curr gps cov: 11.022400, 11.022400 , 176.358400
-[ INFO] [1651092700.516045476]: curr gps pose: 13.868968, 8.179937 , 4.978980
-[ INFO] [1651092700.516052422]: curr gps cov: 11.022400, 11.022400 , 176.358400
-```
 
 ## Adaptation for 6-axis IMU
 
