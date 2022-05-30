@@ -5,8 +5,7 @@
     <arg name="sequence" default="hkust"/>
 
     <!-- Parameters -->
-    <!--    <rosparam file="$(find lio_sam_6axis)/config/params_ouster.yaml" command="load"/>-->
-    <rosparam file="$(find lio_sam_6axis)/config/params_vlp.yaml" command="load"/>
+    <rosparam file="$(find lio_sam_6axis)/config/params_ouster.yaml" command="load"/>
 
     <!--- LOAM -->
     <param name="saveDirectory" type="string" value="$(find lio_sam_6axis)/data/"/>

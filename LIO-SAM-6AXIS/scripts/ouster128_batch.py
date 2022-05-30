@@ -6,7 +6,8 @@ import argparse
 import yaml
 
 plat_data_pair_list = [
-    ('hkust', 'campus')
+    # ('hkust', 'campus')
+    ('apollo', 'campus_day')
     # ('hilti', 'exp01'),
     # ('hilti', 'exp02'),
     # ('handheld', 'exp04'),
@@ -21,7 +22,9 @@ plat_data_pair_list = [
 
 bag_path_download = '/home/xchu/data/ramlab_dataset/'
 bag_path_list = [
-    bag_path_download + 'hkust_20201105full.bag'
+    # bag_path_download + 'hkust_20201105full.bag'
+    bag_path_download + '20220226_campus_road_day_ref.bag'
+
     # bag_path_download + 'exp01_construction_ground_level.bag',
     # bag_path_download + 'exp02_construction_multilevel.bag',
     # bag_path_download + 'exp_04_construction_upper_level_easy_2_2022-03-03-11-48-59.bag',
@@ -52,7 +55,7 @@ if __name__ == '__main__':
         bag_path_dir = bag_path_list[i]
         # for bag_path_dir in bag_path_list:
         for algorithm_type in algorithm_type_list:
-            command = 'roslaunch lio_sam_6axis run.launch' + \
+            command = 'roslaunch lio_sam_6axis ouster128.launch' + \
                       ' bag_path:=' + bag_path_dir + \
                       ' sequence:=' + pd_pair[1]
             # print("================run algorithm at %s sequence==================" % (

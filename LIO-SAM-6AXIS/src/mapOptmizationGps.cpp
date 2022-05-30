@@ -3,6 +3,8 @@
 #include "lio_sam_6axis/save_map.h"
 #include <csignal>
 
+#include <std_srvs/Empty.h>
+
 #include <gtsam/geometry/Rot3.h>
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/slam/PriorFactor.h>
@@ -97,11 +99,14 @@ public:
     std::vector<double> keyframeTimes;
 //    std::queue<nav_msgs::Odometry::ConstPtr> odometryBuf;
     std::vector<sensor_msgs::PointCloud2> allResVec;
+    std::vector<double> keyframeDistances;
+    std::vector<gtsam::GPSFactor> keyframeGPSfactor;
 
     pcl::PointCloud<PointType>::Ptr cloudKeyPoses3D;
     pcl::PointCloud<PointType>::Ptr cloudKeyGPSPoses3D;
     pcl::PointCloud<PointTypePose>::Ptr cloudKeyPoses6D;
     pcl::PointCloud<PointType>::Ptr copy_cloudKeyPoses3D;
+    pcl::PointCloud<PointType>::Ptr copy_cloudKeyPoses2D;
     pcl::PointCloud<PointTypePose>::Ptr copy_cloudKeyPoses6D;
 
     pcl::PointCloud<PointType>::Ptr laserCloudCornerLast; // corner feature set from odoOptimization
@@ -143,10 +148,13 @@ public:
 
     std::unique_ptr<DataSaver> dataSaverPtr;
 
+    bool flg_exit = false;
+    int lastLoopIndex = -1;
+
 
     ros::Time timeLaserInfoStamp;
     double timeLaserInfoCur;
-    double timeStampInitial;
+    //double timeStampInitial;
 
     float transformTobeMapped[6];
 
@@ -157,7 +165,8 @@ public:
     Eigen::Affine3f transGPS;
     Eigen::Vector3d transLLA;
     //bool gpsAvialble = false;
-    bool systemInit = false;
+    bool systemInitialized = false;
+    bool gpsTransfromInit = false;
 
     bool isDegenerate = false;
     cv::Mat matP;
@@ -255,6 +264,7 @@ public:
         cloudKeyGPSPoses3D.reset(new pcl::PointCloud<PointType>());
         cloudKeyPoses6D.reset(new pcl::PointCloud<PointTypePose>());
         copy_cloudKeyPoses3D.reset(new pcl::PointCloud<PointType>());
+        copy_cloudKeyPoses2D.reset(new pcl::PointCloud<PointType>());
         copy_cloudKeyPoses6D.reset(new pcl::PointCloud<PointTypePose>());
 
         kdtreeSurroundingKeyPoses.reset(new pcl::KdTreeFLANN<PointType>());
@@ -317,7 +327,7 @@ public:
 
             updateInitialGuess();
 
-            if (systemInit) {
+            if (systemInitialized) {
                 extractSurroundingKeyFrames();
 
                 downsampleCurrentScan();
@@ -456,87 +466,110 @@ public:
             return false;
     }
 
-    bool saveMapService(lio_sam_6axis::save_mapRequest &req, lio_sam_6axis::save_mapResponse &res) {
-        string saveMapDirectory;
+    bool saveMapService(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+        if (cloudKeyPoses6D->size() < 1) {
+            ROS_INFO("NO ENCOUGH POSE!");
+            return false;
+        }
 
-        cout << "**********************save map service******************************" << endl;
-        cout << "Saving map to pcd files ..." << endl;
-        saveMapDirectory = "/home/xchu/ramlab_ws/";
-//    if (req.destination.empty()) saveMapDirectory = savePCDDirectory;
-//    else saveMapDirectory = std::getenv("HOME") + req.destination;
-        cout << "Save destination: " << saveMapDirectory << endl;
-        //    create directory and remove old files;
-//    int unused = system((std::string("exec rm -r ") + saveMapDirectory).c_str());
-//    unused = system((std::string("mkdir -p ") + saveMapDirectory).c_str());
 
-        pcl::io::savePCDFileBinary(saveMapDirectory + "trajectory.pcd", *cloudKeyPoses3D);
-        pcl::io::savePCDFileBinary(saveMapDirectory + "transformations.pcd", *cloudKeyPoses6D);
+        vector<pcl::PointCloud<PointType>::Ptr> keyframePc;
+        pcl::PointCloud<PointType>::Ptr temp_ptr(new pcl::PointCloud<PointType>);
+        for (int i = 0; i < cloudKeyPoses6D->size(); ++i) {
 
-        // extract global point cloud map
+            PointTypePose p = cloudKeyPoses6D->at(i);
+
+            // keyframeTimes.push_back(p.time);
+            //            Eigen::Translation3d tf_trans(p.x, p.y, p.z);
+            //            Eigen::AngleAxisd rot_x(p.roll, Eigen::Vector3d::UnitX());
+            //            Eigen::AngleAxisd rot_y(p.pitch, Eigen::Vector3d::UnitY());
+            //            Eigen::AngleAxisd rot_z(p.yaw, Eigen::Vector3d::UnitZ());
+            //            Eigen::Matrix4d trans = (tf_trans * rot_z * rot_y * rot_x).matrix();
+            //            keyframePosestrans.push_back(trans);
+
+            nav_msgs::Odometry laserOdometryROS;
+            laserOdometryROS.header.stamp = ros::Time().fromSec(p.time);
+            laserOdometryROS.header.frame_id = odometryFrame;
+            laserOdometryROS.child_frame_id = lidarFrame;
+            laserOdometryROS.pose.pose.position.x = p.x;
+            laserOdometryROS.pose.pose.position.y = p.y;
+            laserOdometryROS.pose.pose.position.z = p.z;
+            laserOdometryROS.pose.pose.orientation =
+                    tf::createQuaternionMsgFromRollPitchYaw(p.roll, p.pitch,
+                                                            p.yaw);
+            keyframePosesOdom.push_back(laserOdometryROS);
+            //            temp_ptr->clear();
+            //            *temp_ptr += *surfCloudKeyFrames.at(i);
+            //            *temp_ptr += *cornerCloudKeyFrames.at(i);
+            //            keyframePc.push_back(temp_ptr);
+        }
+
+        std::cout << "TImes, isam, raw_odom, pose_odom, pose3D, pose6D size: " <<
+                  keyframeTimes.size() << " " << isamCurrentEstimate.size() << ", " <<
+                  keyframeRawOdom.size() << " " << keyframePosesOdom.size() << " " <<
+                  cloudKeyPoses3D->size() << " " << cloudKeyPoses6D->size() << std::endl;
+        std::cout << "key_cloud, surf, corner, raw_frame size: " << keyframePc.size()
+                  << " " << surfCloudKeyFrames.size() << " " << cornerCloudKeyFrames.size() << " "
+                  << laserCloudRawKeyFrames.size() << std::endl;
+
+
+        // when you shut down the terminal , we will save odom  and map
+        if (useGPS) {
+            Eigen::Vector3d first_point(cloudKeyPoses6D->at(0).x, cloudKeyPoses6D->at(0).y, cloudKeyPoses6D->at(0).z);
+            GpsTools gpsTools;
+            gpsTools.lla_origin_ = transLLA;
+
+            // we save optimized origin gps point, maybe the altitude value need to be fixes
+            Eigen::Vector3d lla_point, ecef_point;
+            ecef_point = gpsTools.ENU2ECEF(first_point);
+            lla_point = gpsTools.ECEF2LLA(ecef_point);
+
+            std::cout << std::setprecision(9) << "origin LLA: " << transLLA.transpose() << std::endl;
+            std::cout << std::setprecision(9) << "optimized LLA: " << lla_point.transpose() << std::endl;
+            dataSaverPtr->saveOriginGPS(lla_point);
+        }
+        dataSaverPtr->saveTimes(keyframeTimes);
+        dataSaverPtr->saveGraphGtsam(gtSAMgraph, isam, isamCurrentEstimate);
+        dataSaverPtr->saveOptimizedVerticesTUM(isamCurrentEstimate);
+        dataSaverPtr->saveOptimizedVerticesKITTI(isamCurrentEstimate);
+        dataSaverPtr->saveOdometryVerticesTUM(keyframeRawOdom);
+        dataSaverPtr->saveResultBag(keyframePosesOdom, allResVec);
+
         pcl::PointCloud<PointType>::Ptr globalCornerCloud(new pcl::PointCloud<PointType>());
         pcl::PointCloud<PointType>::Ptr globalCornerCloudDS(new pcl::PointCloud<PointType>());
         pcl::PointCloud<PointType>::Ptr globalSurfCloud(new pcl::PointCloud<PointType>());
         pcl::PointCloud<PointType>::Ptr globalSurfCloudDS(new pcl::PointCloud<PointType>());
+        pcl::PointCloud<PointType>::Ptr globalRawCloud(new pcl::PointCloud<PointType>());
+        pcl::PointCloud<PointType>::Ptr globalRawCloudDS(new pcl::PointCloud<PointType>());
+
         pcl::PointCloud<PointType>::Ptr globalMapCloud(new pcl::PointCloud<PointType>());
         for (int i = 0; i < (int) cloudKeyPoses3D->size(); i++) {
             *globalCornerCloud += *transformPointCloud(cornerCloudKeyFrames[i], &cloudKeyPoses6D->points[i]);
             *globalSurfCloud += *transformPointCloud(surfCloudKeyFrames[i], &cloudKeyPoses6D->points[i]);
+            *globalRawCloud += *transformPointCloud(laserCloudRawKeyFrames[i], &cloudKeyPoses6D->points[i]);
             cout << "\r" << std::flush << "Processing feature cloud " << i << " of " << cloudKeyPoses6D->size()
                  << " ...";
         }
 
-        string file_name;
-        if (!req.name.empty()) {
-            file_name = req.name + "_liosam";
-        } else
-            file_name = sequence + "_liosam";
-
-        double resolution = 0;
-        if (req.resolution != 0) {
-            resolution = req.resolution;
-        } else {
-            resolution = 0.1;
-        }
-        cout << "\n\nSave resolution: " << resolution << endl;
-
-        // down-sample and save corner cloud
         downSizeFilterCorner.setInputCloud(globalCornerCloud);
-        downSizeFilterCorner.setLeafSize(req.resolution, req.resolution, req.resolution);
+        downSizeFilterCorner.setLeafSize(globalMapLeafSize, globalMapLeafSize, globalMapLeafSize);
         downSizeFilterCorner.filter(*globalCornerCloudDS);
-        pcl::io::savePCDFileBinary(saveMapDirectory + "/CornerMap.pcd", *globalCornerCloudDS);
-
         // down-sample and save surf cloud
         downSizeFilterSurf.setInputCloud(globalSurfCloud);
-        downSizeFilterSurf.setLeafSize(resolution, resolution, resolution);
+        downSizeFilterSurf.setLeafSize(globalMapLeafSize, globalMapLeafSize, globalMapLeafSize);
         downSizeFilterSurf.filter(*globalSurfCloudDS);
-        pcl::io::savePCDFileBinary(saveMapDirectory + "/SurfMap.pcd", *globalSurfCloudDS);
-        //    } else {
-        // save corner cloud
-        //      pcl::io::savePCDFileBinary(savePCDDirectory + "/CornerMap.pcd", *globalCornerCloud);
-        // save surf cloud
-        //      pcl::io::savePCDFileBinary(savePCDDirectory + "/SurfMap.pcd", *globalSurfCloud);
-        //    }
+
+        downSizeFilterSurf.setInputCloud(globalRawCloud);
+        downSizeFilterSurf.setLeafSize(globalMapLeafSize, globalMapLeafSize, globalMapLeafSize);
+        downSizeFilterSurf.filter(*globalRawCloudDS);
 
         // save global point cloud map
-        *globalMapCloud += *globalCornerCloud;
-        *globalMapCloud += *globalSurfCloud;
-
-        // ROS_INFO("rotate point cloud");
-        for (int j = 0; j < globalMapCloud->points.size(); ++j) {
-            PointType &pt = globalMapCloud->points.at(j);
-            Eigen::Vector3d translation(pt.x, pt.y, pt.z);
-            translation = q_body_sensor * translation + t_body_sensor;
-
-            pt.x = translation[0];
-            pt.y = translation[1];
-            pt.z = translation[2];
-        }
-
-        int ret = pcl::io::savePCDFileBinary(saveMapDirectory + "/body_service.pcd", *globalMapCloud);
-        res.success = ret == 0;
-
-        downSizeFilterCorner.setLeafSize(mappingCornerLeafSize, mappingCornerLeafSize, mappingCornerLeafSize);
-        downSizeFilterSurf.setLeafSize(mappingSurfLeafSize, mappingSurfLeafSize, mappingSurfLeafSize);
+        //        *globalMapCloud += *globalCornerCloudDS;
+        //        *globalMapCloud += *globalSurfCloudDS;
+        *globalMapCloud += *globalRawCloudDS;
+        std::cout << "map size: " << globalMapCloud->size() << std::endl;
+        dataSaverPtr->savePointCloudMap(*globalMapCloud);
+        //dataSaverPtr->savePointCloudMap(keyframePosesOdom, laserCloudRawKeyFrames);
 
         cout << "****************************************************" << endl;
         cout << "Saving map to pcd files completed: " << endl;
@@ -544,100 +577,18 @@ public:
         return true;
     }
 
+
+//    bool saveMapService(lio_sam_6axis::save_mapRequest &req, lio_sam_6axis::save_mapResponse &res) {
+//
+//
+//    }
+
     void visualizeGlobalMapThread() {
         ros::Rate rate(0.2);
         while (ros::ok()) {
             rate.sleep();
             publishGlobalMap();
-            if (useGPS)
-                visualGPSConstraint();
         }
-
-        /*
-             if (savePCD == false)
-               return;
-
-         lio_sam_6axis::save_mapRequest req;
-           lio_sam_6axis::save_mapResponse res;
-
-           // save pose graph
-           if (loopClosureEnableFlag) {
-               pcd_suffix = savePCDDirectory + sequence + "_liosam_loop_";
-               // save g2o file
-               gtsam::writeG2o(gtSAMgraph, isamCurrentEstimate, pcd_suffix + "pose_graph.g2o");
-               ROS_WARN("Save map. pose size: %d", cloudKeyPoses3D->size());
-           } else {
-               pcd_suffix = savePCDDirectory + sequence + "_liosam_";
-           }
-
-           //    if (!saveMapService(req, res)) {
-           //      cout << "Fail to save map" << endl;
-           //    }
-
-           pcl::PointCloud<PointType>::Ptr globalCornerCloud(new pcl::PointCloud<PointType>());
-           pcl::PointCloud<PointType>::Ptr globalCornerCloudDS(new pcl::PointCloud<PointType>());
-           pcl::PointCloud<PointType>::Ptr globalSurfCloud(new pcl::PointCloud<PointType>());
-           pcl::PointCloud<PointType>::Ptr globalSurfCloudDS(new pcl::PointCloud<PointType>());
-           pcl::PointCloud<PointType>::Ptr globalFeatureMapCloud(new pcl::PointCloud<PointType>());
-           pcl::PointCloud<PointType>::Ptr globalMapCloudDS(new pcl::PointCloud<PointType>());
-           pcl::PointCloud<PointType>::Ptr globalMapCloud(new pcl::PointCloud<PointType>());
-           for (int i = 0; i < (int) cloudKeyPoses3D->size(); i++) {
-               *globalCornerCloud += *transformPointCloud(cornerCloudKeyFrames[i], &cloudKeyPoses6D->points[i]);
-               *globalSurfCloud += *transformPointCloud(surfCloudKeyFrames[i], &cloudKeyPoses6D->points[i]);
-               *globalMapCloud += *transformPointCloud(laserCloudRawKeyFrames[i], &cloudKeyPoses6D->points[i]);
-               cout << "\r" << std::flush << "Processing feature cloud " << i << " of " << cloudKeyPoses6D->size()
-                    << " ...";
-           }
-           // down-sample and save corner cloud
-           downSizeFilterCorner.setInputCloud(globalCornerCloud);
-           downSizeFilterCorner.filter(*globalCornerCloudDS);
-           pcl::io::savePCDFileASCII(savePCDDirectory + "cloudCorner.pcd", *globalCornerCloudDS);
-
-           // down-sample and save surf cloud
-           downSizeFilterSurf.setInputCloud(globalSurfCloud);
-           downSizeFilterSurf.filter(*globalSurfCloudDS);
-           pcl::io::savePCDFileASCII(savePCDDirectory + "cloudSurf.pcd", *globalSurfCloudDS);
-           // down-sample and save global point cloud map
-           *globalFeatureMapCloud += *globalCornerCloud;
-           *globalFeatureMapCloud += *globalSurfCloud;
-
-           downSizeFilterCorner.setLeafSize(0.1, 0.1, 0.1);
-           downSizeFilterCorner.setInputCloud(globalMapCloud);
-           downSizeFilterCorner.filter(*globalMapCloudDS);
-
-           globalMapCloudDS->height = 1;
-           globalMapCloudDS->width = globalMapCloudDS->points.size();
-           globalFeatureMapCloud->height = 1;
-           globalFeatureMapCloud->width = globalFeatureMapCloud->points.size();
-
-           // all cloud must rotate to body axis
-           ROS_INFO("rotate point cloud");
-           for (int j = 0; j < globalMapCloudDS->points.size(); ++j) {
-               PointType &pt = globalMapCloudDS->points.at(j);
-               Eigen::Vector3d translation(pt.x, pt.y, pt.z);
-               translation = q_body_sensor * translation + t_body_sensor;
-
-               pt.x = translation[0];
-               pt.y = translation[1];
-               pt.z = translation[2];
-           }
-           for (int j = 0; j < globalFeatureMapCloud->points.size(); ++j) {
-               PointType &pt = globalFeatureMapCloud->points.at(j);
-               Eigen::Vector3d translation(pt.x, pt.y, pt.z);
-               translation = q_body_sensor * translation + t_body_sensor;
-
-               pt.x = translation[0];
-               pt.y = translation[1];
-               pt.z = translation[2];
-           }
-
-           pcl::io::savePCDFileASCII(pcd_suffix + "body_raw.pcd", *globalMapCloudDS);
-           pcl::io::savePCDFileASCII(pcd_suffix + "body_feature_map.pcd", *globalFeatureMapCloud);
-           cout << "********************** save map terminal******************************" << endl;
-           cout << "Saving map to pcd files completed, " << endl;
-
-           downSizeFilterCorner.setLeafSize(mappingCornerLeafSize, mappingCornerLeafSize, mappingCornerLeafSize);
-           downSizeFilterSurf.setLeafSize(mappingSurfLeafSize, mappingSurfLeafSize, mappingSurfLeafSize);*/
     }
 
     void publishGlobalMap() {
@@ -701,52 +652,23 @@ public:
         publishCloud(pubLaserCloudSurround, globalMapKeyFramesDS, timeLaserInfoStamp, odometryFrame);
     }
 
+
     void loopClosureThread() {
         if (loopClosureEnableFlag == false)
             return;
 
         ros::Rate rate(loopClosureFrequency);
         while (ros::ok()) {
-            rate.sleep();
+            ros::spinOnce();
+
             performLoopClosure();
             visualizeLoopClosure();
+
+            if (useGPS)
+                visualGPSConstraint();
+
+            rate.sleep();
         }
-
-        for (int i = 0; i < cloudKeyPoses6D->size(); ++i) {
-
-            PointTypePose p = cloudKeyPoses6D->at(i);
-
-            keyframeTimes.push_back(p.time);
-            Eigen::Translation3d tf_trans(p.x, p.y, p.z);
-            Eigen::AngleAxisd rot_x(p.roll, Eigen::Vector3d::UnitX());
-            Eigen::AngleAxisd rot_y(p.pitch, Eigen::Vector3d::UnitY());
-            Eigen::AngleAxisd rot_z(p.yaw, Eigen::Vector3d::UnitZ());
-            Eigen::Matrix4d trans = (tf_trans * rot_z * rot_y * rot_x).matrix();
-            keyframePosestrans.push_back(trans);
-
-            nav_msgs::Odometry laserOdometryROS;
-            laserOdometryROS.header.stamp = ros::Time().fromSec(p.time);
-            laserOdometryROS.header.frame_id = odometryFrame;
-            laserOdometryROS.child_frame_id = lidarFrame;
-            laserOdometryROS.pose.pose.position.x = p.x;
-            laserOdometryROS.pose.pose.position.y = p.y;
-            laserOdometryROS.pose.pose.position.z = p.z;
-            laserOdometryROS.pose.pose.orientation =
-                    tf::createQuaternionMsgFromRollPitchYaw(p.roll, p.pitch,
-                                                            p.yaw);
-            keyframePosesOdom.push_back(laserOdometryROS);
-        }
-
-
-        // when you shut down the terminal , we will save odom  and map
-        dataSaverPtr->saveTimes(keyframeTimes);
-        dataSaverPtr->saveGraphGtsam(gtSAMgraph, isam, isamCurrentEstimate);
-        dataSaverPtr->saveOptimizedVerticesTUM(isamCurrentEstimate);
-        dataSaverPtr->saveOptimizedVerticesKITTI(isamCurrentEstimate);
-        dataSaverPtr->saveOdometryVerticesTUM(keyframeRawOdom);
-        dataSaverPtr->saveResultBag(keyframePosesOdom, allResVec);
-        dataSaverPtr->savePointCloudMap(keyframePosesOdom, laserCloudRawKeyFrames);
-        //dataSaverPtr->saveLoopandImagePair(loopIndexCheckedMap, all_camera_corre_match_pair);
     }
 
     void loopInfoHandler(const std_msgs::Float64MultiArray::ConstPtr &loopMsg) {
@@ -767,6 +689,7 @@ public:
 
         mtx.lock();
         *copy_cloudKeyPoses3D = *cloudKeyPoses3D;
+        *copy_cloudKeyPoses2D = *cloudKeyPoses3D;
         *copy_cloudKeyPoses6D = *cloudKeyPoses6D;
         mtx.unlock();
 
@@ -840,6 +763,7 @@ public:
 
         // add loop constriant
         loopIndexContainer[loopKeyCur] = loopKeyPre;
+        lastLoopIndex = loopKeyCur;
     }
 
     bool detectLoopClosureDistance(int *latestID, int *closestID) {
@@ -851,11 +775,25 @@ public:
         if (it != loopIndexContainer.end())
             return false;
 
+        // tricks
+        // Two consecutive loop edges represent the closed loop of the same scene.
+        // Adding all of them to the pose graph has little meaning and may reduce the accuracy.
+        if (abs(lastLoopIndex - loopKeyCur) < 5 && lastLoopIndex != -1)
+            return false;
+
+        // tricks
+        // sometimes we need to find the corressponding loop pairs
+        // but we do not need to care about the z values of these poses.
+        // Pls note that this is not work for stair case
+        for (int i = 0; i < copy_cloudKeyPoses2D->size(); ++i) {
+            copy_cloudKeyPoses2D->at(i).z = 0;
+        }
+
         // find the closest history key frame
         std::vector<int> pointSearchIndLoop;
         std::vector<float> pointSearchSqDisLoop;
-        kdtreeHistoryKeyPoses->setInputCloud(copy_cloudKeyPoses3D);
-        kdtreeHistoryKeyPoses->radiusSearch(copy_cloudKeyPoses3D->back(),
+        kdtreeHistoryKeyPoses->setInputCloud(copy_cloudKeyPoses2D);
+        kdtreeHistoryKeyPoses->radiusSearch(copy_cloudKeyPoses2D->back(),
                                             historyKeyframeSearchRadius,
                                             pointSearchIndLoop,
                                             pointSearchSqDisLoop,
@@ -871,6 +809,20 @@ public:
 
         if (loopKeyPre == -1 || loopKeyCur == loopKeyPre)
             return false;
+
+        // we also need to care about the accumulated distance between keyframe;
+        // LOOPs that are too close together have no meaning and may reduce accuracy. For example, the lidar starts to move after being stationary for 30s in a certain place.
+        // At this time, the IMU should be trusted more than the lidar.
+        if (keyframeDistances.size() >= loopKeyCur) {
+            double distance = 0.0;
+            for (int j = loopKeyPre; j < loopKeyCur; ++j) {
+                distance += keyframeDistances.at(j);
+            }
+            if (distance < 10) {
+                std::cout << "CLOSE FRAME MUST FILTER OUT " << distance << std::endl;
+                return false;
+            }
+        }
 
         *latestID = loopKeyCur;
         *closestID = loopKeyPre;
@@ -1078,77 +1030,75 @@ public:
 
         // initialization the first frame
         if (cloudKeyPoses3D->points.empty()) {
+            systemInitialized = false;
             if (useGPS) {
                 ROS_INFO("GPS use to init pose");
 
+                // since we cannot guarantee the precise alignment of the initial GPS and lidar coordinate systems, this is just a rough orientation.
+                // When a large number of accurate GPS points are added to the pose graph in the future,
+                // the accuracy of the entire alignment will be relatively high.
                 nav_msgs::Odometry alignedGPS;
-                if (syncGPS(gpsQueue, alignedGPS, timeLaserInfoCur, 2.0 / gpsFrequence)) {
+                if (syncGPS(gpsQueue, alignedGPS, timeLaserInfoCur, 1.0 / gpsFrequence)) {
                     double roll, pitch, yaw;
                     tf::Matrix3x3(tf::Quaternion(alignedGPS.pose.pose.orientation.x,
                                                  alignedGPS.pose.pose.orientation.y,
                                                  alignedGPS.pose.pose.orientation.z,
                                                  alignedGPS.pose.pose.orientation.w)).getRPY(roll, pitch, yaw);
                     if (debugGps)
-                        std::cout << "initial rpy: " << roll << "," << pitch << ", " << yaw << std::endl;
+                        std::cout << "initial rpy: " << roll << ", " << pitch << ", " << yaw << std::endl;
 
                     if (!std::isnan(yaw)) {
-                        transGPS.setIdentity();
-                        transGPS = pcl::getTransformation(alignedGPS.pose.pose.position.x,
-                                                          alignedGPS.pose.pose.position.y,
-                                                          alignedGPS.pose.pose.position.z,
-                                                          roll,
-                                                          pitch,
-                                                          yaw);
+                        Eigen::Isometry3d gps_transform = Eigen::Isometry3d::Identity();
+                        gps_transform.rotate(Eigen::Quaterniond(alignedGPS.pose.pose.orientation.w,
+                                                                alignedGPS.pose.pose.orientation.x,
+                                                                alignedGPS.pose.pose.orientation.y,
+                                                                alignedGPS.pose.pose.orientation.z).toRotationMatrix());
+                        gps_transform.pretranslate(Eigen::Vector3d(alignedGPS.pose.pose.position.x,
+                                                                   alignedGPS.pose.pose.position.y,
+                                                                   alignedGPS.pose.pose.position.z));
+
+
+                        Eigen::Isometry3d lidar_pose = Eigen::Isometry3d::Identity();;
+                        lidar_pose.rotate(
+                                Eigen::Quaterniond(Eigen::AngleAxisd(cloudInfo.imuYawInit, Eigen::Vector3d::UnitZ()) *
+                                                   Eigen::AngleAxisd(cloudInfo.imuPitchInit, Eigen::Vector3d::UnitY()) *
+                                                   Eigen::AngleAxisd(cloudInfo.imuRollInit, Eigen::Vector3d::UnitX())));
+                        lidar_pose.pretranslate(Eigen::Vector3d(cloudInfo.initialGuessX,
+                                                                cloudInfo.initialGuessY,
+                                                                cloudInfo.initialGuessZ));
+
+                        // Please note that the GPS point is the first point in the pose graph, the first lidar pose should be  the second point,
+                        // and the GPS latitude and longitude data needs to be retained as the origin of the localization map.
                         transLLA.setIdentity();
                         transLLA = Eigen::Vector3d(alignedGPS.pose.covariance[1], alignedGPS.pose.covariance[2],
                                                    alignedGPS.pose.covariance[3]);
-
-                        Eigen::AngleAxisd rollAngle1(roll, Eigen::Vector3d::UnitX());
-                        Eigen::AngleAxisd pitchAngle1(pitch, Eigen::Vector3d::UnitY());
-                        Eigen::AngleAxisd yawAngle1(yaw, Eigen::Vector3d::UnitZ());
-                        Eigen::Quaterniond q_gps = yawAngle1 * pitchAngle1 * rollAngle1;
-
-                        Eigen::AngleAxisd rollAngle(cloudInfo.imuRollInit, Eigen::Vector3d::UnitX());
-                        Eigen::AngleAxisd pitchAngle(cloudInfo.imuPitchInit, Eigen::Vector3d::UnitY());
-                        Eigen::AngleAxisd yawAngle(cloudInfo.imuYawInit, Eigen::Vector3d::UnitZ());
-                        Eigen::Quaterniond q_imu = yawAngle * pitchAngle * rollAngle;
-
-                        Eigen::Matrix3d rotation_matrix_imu = q_imu.toRotationMatrix();
-                        Eigen::Matrix3d rotation_matrix_gps = q_gps.toRotationMatrix();
-
                         if (debugGps) {
-                            std::cout << "gps: " << transGPS.matrix() << std::endl;
+                            std::cout << "gps: " << gps_transform.matrix() << std::endl;
                             std::cout << "gps LLA: " << transLLA.transpose() << std::endl;
                         }
-                        // std::cout << "befroe: " << rotation_matrix_imu << ", " << std::endl;
-
-                        // Eigen::Affine3f transIMURaw =
-                        //  pcl::getTransformation(0, 0, 0, cloudInfo.imuRollInit, cloudInfo.imuPitchInit, cloudInfo.imuYawInit);
-                        //Eigen::Affine3f transIMUAft = transGPS.block<3, 3>(0, 0) * transIMURaw.inverse();
-                        // Eigen::Matrix3d transIMUAft = rotation_matrix_gps * rotation_matrix_imu.inverse();
-                        Eigen::Matrix3d transIMUAft = rotation_matrix_gps.inverse() * rotation_matrix_imu;
-                        Eigen::Vector3d eulerAngle2 = transIMUAft.eulerAngles(0, 1, 2); // roll,pitch,yaw
+                        Eigen::Isometry3d transIMUAft = lidar_pose.inverse() * gps_transform;
+                        Eigen::Vector3d eulerAngle2 = transIMUAft.rotation().eulerAngles(0, 1, 2); // roll,pitch,yaw
                         transformTobeMapped[0] = eulerAngle2[0];
                         transformTobeMapped[1] = eulerAngle2[1];
                         transformTobeMapped[2] = eulerAngle2[2];
 
-                        //std::cout << "after: " << eulerAngle2[2] << ", " << std::endl;
+                        std::cout << "after rpy: " << eulerAngle2[0] << ", " << eulerAngle2[1] << ", " << eulerAngle2[2]
+                                  << std::endl;
 
                         if (!useImuHeadingInitialization)
                             transformTobeMapped[2] = 0;
-                        lastImuTransformation = pcl::getTransformation(0,
-                                                                       0,
-                                                                       0,
+
+                        lastImuTransformation = pcl::getTransformation(transIMUAft.translation().x(),
+                                                                       transIMUAft.translation().y(),
+                                                                       transIMUAft.translation().z(),
                                                                        eulerAngle2[0],
                                                                        eulerAngle2[1],
-                                                                       eulerAngle2[2]); // save imu before return;
+                                                                       eulerAngle2[2]); // save imu
 
-                        timeStampInitial = timeLaserInfoCur;
 
-                        systemInit = true;
+                        systemInitialized = true;
                         ROS_WARN("GPS init success");
                     } else {
-                        systemInit = false;
                         ROS_ERROR("GPS NAN, waiting for a better yaw");
                     }
                 }
@@ -1168,13 +1118,13 @@ public:
                                                                cloudInfo.imuPitchInit,
                                                                cloudInfo.imuYawInit); // save imu before return;
 
-                systemInit = true;
+                systemInitialized = true;
                 return;
             }
         }
 
-        if (!systemInit) {
-            ROS_WARN("sysyem need to be initialized");
+        if (!systemInitialized) {
+            ROS_ERROR("sysyem need to be initialized");
             return;
         }
 
@@ -1291,7 +1241,6 @@ public:
             else
                 break;
         }
-
         extractCloud(surroundingKeyPosesDS);
     }
 
@@ -1797,6 +1746,9 @@ public:
             sqrt(x * x + y * y + z * z) < surroundingkeyframeAddingDistThreshold)
             return false;
 
+        // std::cout << "distance gap: " << sqrt(x * x + y * y) << std::endl;
+        keyframeDistances.push_back(sqrt(x * x + y * y));
+
         return true;
     }
 
@@ -1876,7 +1828,6 @@ public:
             if (abs(gps_x) < 1e-6 && abs(gps_y) < 1e-6)
                 return;
 
-
             // Add GPS every a few meters
             PointType curGPSPoint;
             curGPSPoint.x = gps_x;
@@ -1897,16 +1848,45 @@ public:
                          thisGPS.pose.covariance[14]);
             }
 
+
             gtsam::Vector Vector3(3);
             Vector3 << max(noise_x, 1.0f), max(noise_y, 1.0f), max(noise_z, 1.0f);
             noiseModel::Diagonal::shared_ptr gps_noise = noiseModel::Diagonal::Variances(Vector3);
             gtsam::GPSFactor gps_factor(cloudKeyPoses3D->size(), gtsam::Point3(gps_x, gps_y, gps_z), gps_noise);
-            gtSAMgraph.add(gps_factor);
-
-            // add loop constriant
+            keyframeGPSfactor.push_back(gps_factor);
             cloudKeyGPSPoses3D->points.push_back(curGPSPoint);
-            gpsIndexContainer[cloudKeyPoses3D->size()] = cloudKeyGPSPoses3D->size() - 1;
 
+            // only a trick!
+            // we need to accumulate some accurate gps points to initialize the transform
+            // between gps coordinate system and LIO coordinate system
+            // and then we can add gps points one by one into the pose graph
+            // or the whole pose graph will crashed if giving some respectively bad gps points at first.
+            if (keyframeGPSfactor.size() < 20) {
+                ROS_INFO("Accumulated gps factor: %d", keyframeGPSfactor.size());
+                return;
+            }
+
+            if (!gpsTransfromInit) {
+                ROS_INFO("Initialize GNSS transform!");
+                for (int i = 0; i < keyframeGPSfactor.size(); ++i) {
+                    gtsam::GPSFactor gpsFactor = keyframeGPSfactor.at(i);
+                    gtSAMgraph.add(gpsFactor);
+                    gpsIndexContainer[gpsFactor.key()] = i;
+                }
+                gpsTransfromInit = true;
+            } else {
+                // After the coordinate systems are aligned, in theory, the GPS z and the z estimated by the current LIO system should not be too different. Otherwise,
+                // there is a problem with the quality of the secondary GPS point.
+                if (abs(gps_z - cloudKeyPoses3D->back().z) > 8.0) {
+                    ROS_WARN("Too large GNSS z noise %f", noise_z);
+                    gtsam::Vector Vector3(3);
+                    Vector3 << max(noise_x, 10000.0f), max(noise_y, 10000.0f), max(noise_z, 100000.0f);
+                    gps_noise = noiseModel::Diagonal::Variances(Vector3);
+                }
+                // add loop constriant
+                gtSAMgraph.add(gps_factor);
+                gpsIndexContainer[cloudKeyPoses3D->size()] = cloudKeyGPSPoses3D->size() - 1;
+            }
             aLoopIsClosed = true;
         }
     }
@@ -2018,6 +1998,7 @@ public:
         surfCloudKeyFrames.push_back(thisSurfKeyFrame);
         laserCloudRawKeyFrames.push_back(thislaserCloudRawKeyFrame);
         allResVec.push_back(cloudInfo.cloud_deskewed);
+        keyframeTimes.push_back(timeLaserInfoStamp.toSec());
 
         // save keyframe pose odom
         //        nav_msgs::Odometry updatesOdometryROS;

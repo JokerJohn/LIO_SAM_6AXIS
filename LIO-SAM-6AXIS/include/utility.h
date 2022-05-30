@@ -54,6 +54,8 @@
 #include <thread>
 #include <mutex>
 
+#include "gpsTools.hpp"
+
 using namespace std;
 
 typedef pcl::PointXYZI PointType;
@@ -177,6 +179,8 @@ public:
     float globalMapVisualizationPoseDensity;
     float globalMapVisualizationLeafSize;
 
+    float globalMapLeafSize;
+
     ParamServer() {
         nh.param<std::string>("/robot_id", robot_id, "roboat");
 
@@ -210,7 +214,7 @@ public:
         std::cout << "SAVE DIR:" << saveDirectory << std::endl;
 
         std::string sensorStr;
-        nh.param<std::string>("lio_sam_6axis/sensor", sensorStr, "");
+        nh.param<std::string>("lio_sam_6axis/sensor", sensorStr, "ouster");
         if (sensorStr == "velodyne") {
             sensor = SensorType::VELODYNE;
         } else if (sensorStr == "ouster") {
@@ -295,6 +299,8 @@ public:
         nh.param<float>("lio_sam_6axis/globalMapVisualizationSearchRadius", globalMapVisualizationSearchRadius, 1e3);
         nh.param<float>("lio_sam_6axis/globalMapVisualizationPoseDensity", globalMapVisualizationPoseDensity, 10.0);
         nh.param<float>("lio_sam_6axis/globalMapVisualizationLeafSize", globalMapVisualizationLeafSize, 1.0);
+
+        nh.param<float>("lio_sam_6axis/globalMapLeafSize", globalMapLeafSize, 1.0);
 
         usleep(100);
     }

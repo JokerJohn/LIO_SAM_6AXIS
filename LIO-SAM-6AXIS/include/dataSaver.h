@@ -48,11 +48,13 @@ public:
 
     void setDir(string _base_dir, string _sequence_name);
 
-    void setExtrinc(bool _use_imu, Eigen::Vector3d _t_body_sensor,Eigen::Quaterniond _q_body_sensor);
+    void setExtrinc(bool _use_imu, Eigen::Vector3d _t_body_sensor, Eigen::Quaterniond _q_body_sensor);
 
     void saveOptimizedVerticesKITTI(gtsam::Values _estimates);
 
     void saveOdometryVerticesKITTI(std::string _filename);
+
+    void saveOriginGPS(Eigen::Vector3d gps_point);
 
     void saveTimes(vector<double> keyframeTimes);
 
@@ -72,6 +74,8 @@ public:
 
     void savePointCloudMap(std::vector<nav_msgs::Odometry> allOdometryVec,
                            std::vector<pcl::PointCloud<PointT>::Ptr> allResVec);
+
+    void savePointCloudMap(pcl::PointCloud<PointT> allResVec);
 
 private:
 

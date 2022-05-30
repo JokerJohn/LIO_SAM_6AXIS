@@ -56,7 +56,7 @@ void DataSaver::setDir(string _base_dir, string _sequence_name) {
 }
 
 
-void DataSaver::setExtrinc(bool _use_imu, Eigen::Vector3d _t_body_sensor,Eigen::Quaterniond _q_body_sensor){
+void DataSaver::setExtrinc(bool _use_imu, Eigen::Vector3d _t_body_sensor, Eigen::Quaterniond _q_body_sensor) {
     this->use_imu_frame = _use_imu;
     this->t_body_sensor = _t_body_sensor;
     this->q_body_sensor = _q_body_sensor;
@@ -100,6 +100,14 @@ void DataSaver::saveOdometryVerticesKITTI(std::string _filename) {
 //           << col1.z() << " " << col2.z() << " " << col3.z() << " " << t.z() << std::endl;
 //  }
 }
+
+void DataSaver::saveOriginGPS(Eigen::Vector3d gps_point) {
+    std::fstream originStream(save_directory + "origin.txt", std::fstream::out);
+    originStream.precision(15);
+    originStream << gps_point[0] << " " << gps_point[1] << " " << gps_point[2] << std::endl;
+    originStream.close();
+}
+
 
 void DataSaver::saveTimes(vector<double> _keyframeTimes) {
 
@@ -174,12 +182,12 @@ void DataSaver::saveResultBag(std::vector<nav_msgs::Odometry> allOdometryVec,
 //  LOG(INFO) << "ODOM AND PCD SIZE:" << allOdometryVec.size() << ", " << allResVec.size();
     for (int i = 0; i < allOdometryVec.size(); i++) {
         nav_msgs::Odometry _laserOdometry = allOdometryVec.at(i);
-        result_bag.write("lio_sam_6axis/mapping/odometry", _laserOdometry.header.stamp, _laserOdometry);
+        result_bag.write("pgo_odometry", _laserOdometry.header.stamp, _laserOdometry);
     }
 
     for (int i = 0; i < allResVec.size(); i++) {
         sensor_msgs::PointCloud2 _laserCloudFullRes = allResVec.at(i);
-        result_bag.write("lio_sam_6axis/cloud_deskewed", _laserCloudFullRes.header.stamp, _laserCloudFullRes);
+        result_bag.write("cloud_deskewed", _laserCloudFullRes.header.stamp, _laserCloudFullRes);
     }
     result_bag.close();
 //  LOG(INFO) << "WRITE ROSBAG: " << save_directory + "_result.bag" << ", SIZE: " << result_bag.getSize();
@@ -266,19 +274,21 @@ void DataSaver::savePointCloudMap(std::vector<nav_msgs::Odometry> allOdometryVec
 
     std::cout << "odom and cloud size: " << allOdometryVec.size() << ", " << allResVec.size();
 
-    if(allOdometryVec.size()!=allResVec.size()) {
-        std::cout << "point cloud size do not equal to odom size!";
-        return;
+    int odom_size = std::min(allOdometryVec.size(), allResVec.size());
+
+    if (allOdometryVec.size() != allResVec.size()) {
+        std::cout << " point cloud size do not equal to odom size!";
+        // return;
     }
 
     pcl::PointCloud<PointT>::Ptr laserCloudRaw(new pcl::PointCloud<PointT>()); // giseop
     pcl::PointCloud<PointT>::Ptr laserCloudTrans(new pcl::PointCloud<PointT>()); // giseop
     pcl::PointCloud<PointT>::Ptr globalmap(new pcl::PointCloud<PointT>()); // giseop
-    for (int i = 0; i < allOdometryVec.size(); ++i) {
+    for (int i = 0; i < odom_size; ++i) {
         laserCloudRaw->clear();
         laserCloudTrans->clear();
         nav_msgs::Odometry odom = allOdometryVec.at(i);
-        laserCloudRaw= allResVec.at(i);
+        laserCloudRaw = allResVec.at(i);
 
         Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
         transform.rotate(Eigen::Quaterniond(odom.pose.pose.orientation.w,
@@ -296,7 +306,7 @@ void DataSaver::savePointCloudMap(std::vector<nav_msgs::Odometry> allOdometryVec
     // save point cloud in lidar frame
     // if you want to save it in body frame(imu)
     // i will update it later
-    if (!globalmap->empty()){
+    if (!globalmap->empty()) {
         globalmap->width = globalmap->points.size();
         globalmap->height = 1;
         globalmap->is_dense = false;
@@ -304,7 +314,7 @@ void DataSaver::savePointCloudMap(std::vector<nav_msgs::Odometry> allOdometryVec
         pcl::io::savePCDFileASCII(save_directory + "globalmap_lidar.pcd", *globalmap);
 
         // all cloud must rotate to body axis
-        if (use_imu_frame){
+        if (use_imu_frame) {
             for (int j = 0; j < globalmap->points.size(); ++j) {
                 PointT &pt = globalmap->points.at(j);
                 Eigen::Vector3d translation(pt.x, pt.y, pt.z);
@@ -319,5 +329,15 @@ void DataSaver::savePointCloudMap(std::vector<nav_msgs::Odometry> allOdometryVec
     } else
         std::cout << "EMPTY POINT CLOUD";
 
+}
+
+void DataSaver::savePointCloudMap(pcl::PointCloud<PointT> cloud_ptr) {
+
+
+    if (cloud_ptr.empty()) {
+        std::cout << "empty global map cloud!" << std::endl;
+        return;
+    }
+    pcl::io::savePCDFileASCII(save_directory + "globalmap_lidar_feature.pcd", cloud_ptr);
 }
 

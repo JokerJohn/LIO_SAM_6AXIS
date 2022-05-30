@@ -29,17 +29,12 @@ private:
             ROS_ERROR("POS LLA NAN...");
             return;
         }
-        if (!init_xyz) {
+        if (!initXyz) {
             ROS_INFO("Init Orgin GPS LLA  %f, %f, %f", msg->latitude, msg->longitude, msg->altitude);
             gtools.lla_origin_ << msg->latitude, msg->longitude, msg->altitude;
-            init_xyz = true;
-            // save the oringin
-            //      std::ofstream out;
-            //      out.open(save_dir_ + "map_origin.txt", std::ios::out);
-            //      out << msg->latitude << " " << msg->longitude << " " << msg->altitude;
-            //      out.close();
+            initXyz = true;
         }
-        if (!init_xyz) {
+        if (!initXyz) {
             ROS_ERROR("waiting init origin axis");
             return;
         }
@@ -55,18 +50,30 @@ private:
         Eigen::Vector3d calib_enu = enu;
 
         // caculate yaw
-        double distance = sqrt(pow(enu(1) - prev_pos_(1), 2) +
-                               pow(enu(0) - prev_pos_(0), 2));
+        //bool orientation_ready_ = false;
+        double distance = sqrt(pow(enu(1) - prevPos(1), 2) +
+                               pow(enu(0) - prevPos(0), 2));
         if (distance > 0.1) {
-            yaw = atan2(enu(1) - prev_pos_(1),
-                        enu(0) - prev_pos_(0)); // 返回值是此点与远点连线与x轴正方向的夹角
-            yaw_quat_ = tf::createQuaternionMsgFromYaw(yaw);
-            prev_pos_ = enu;
-            prev_yaw = yaw;
-            orientation_ready_ = true;
+            yaw = atan2(enu(1) - prevPos(1),
+                        enu(0) - prevPos(0)); // 返回值是此点与远点连线与x轴正方向的夹角
+            yawQuat = tf::createQuaternionMsgFromYaw(yaw);
+            prevPos = enu;
+            prevYaw = yaw;
+            orientationReady_ = true;
+            if (!firstYawInit) {
+                firstYawInit = true;
+                gtools.lla_origin_ << msg->latitude, msg->longitude, msg->altitude;
+            }
             ROS_INFO("gps yaw : %f", yaw);
         } else
-            orientation_ready_ = false;
+            orientationReady_ = false;
+
+        // make sure your initial yaw and origin postion are consistent
+        if (!firstYawInit) {
+            ROS_ERROR("waiting init origin yaw");
+            return;
+        }
+
 
         // pub gps odometry
         nav_msgs::Odometry odom_msg;
@@ -89,8 +96,8 @@ private:
         odom_msg.pose.covariance[1] = lla[0];
         odom_msg.pose.covariance[2] = lla[1];
         odom_msg.pose.covariance[3] = lla[2];
-        if (orientation_ready_)
-            odom_msg.pose.pose.orientation = yaw_quat_;
+        if (orientationReady_)
+            odom_msg.pose.pose.orientation = yawQuat;
         else {
             // when we do not get the proper yaw, we set it NAN
             geometry_msgs::Quaternion quaternion = tf::createQuaternionMsgFromYaw(NAN);
@@ -98,19 +105,19 @@ private:
         gpsOdomPub.publish(odom_msg);
 
         // publish path
-        ros_path_.header.frame_id = "map";
-        ros_path_.header.stamp = msg->header.stamp;
+        rospath.header.frame_id = "map";
+        rospath.header.stamp = msg->header.stamp;
         geometry_msgs::PoseStamped pose;
-        pose.header = ros_path_.header;
+        pose.header = rospath.header;
         pose.pose.position.x = calib_enu(0);
         pose.pose.position.y = calib_enu(1);
         pose.pose.position.z = calib_enu(2);
-        pose.pose.orientation.x = yaw_quat_.x;
-        pose.pose.orientation.y = yaw_quat_.y;
-        pose.pose.orientation.z = yaw_quat_.z;
-        pose.pose.orientation.w = yaw_quat_.w;
-        ros_path_.poses.push_back(pose);
-        fusedPathPub.publish(ros_path_);
+        pose.pose.orientation.x = yawQuat.x;
+        pose.pose.orientation.y = yawQuat.y;
+        pose.pose.orientation.z = yawQuat.z;
+        pose.pose.orientation.w = yawQuat.w;
+        rospath.poses.push_back(pose);
+        fusedPathPub.publish(rospath);
     }
 
     ros::NodeHandle nh;
@@ -119,15 +126,16 @@ private:
     ros::Publisher gpsOdomPub, fusedPathPub;
     ros::Subscriber gpsSub;
 
-    std::mutex mutex_lock;
+    std::mutex mutexLock;
     std::deque<sensor_msgs::NavSatFixConstPtr> gpsBuf;
 
-    bool init_xyz = false;
-    bool orientation_ready_ = false;
-    Eigen::Vector3d prev_pos_;
-    double yaw = 0.0, prev_yaw = 0.0;
-    geometry_msgs::Quaternion yaw_quat_;
-    nav_msgs::Path ros_path_;
+    bool orientationReady_ = false;
+    bool initXyz = false;
+    bool firstYawInit = false;
+    Eigen::Vector3d prevPos;
+    double yaw = 0.0, prevYaw = 0.0;
+    geometry_msgs::Quaternion yawQuat;
+    nav_msgs::Path rospath;
 };
 
 int main(int argc, char **argv) {

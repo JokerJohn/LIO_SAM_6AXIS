@@ -5,31 +5,44 @@ This repo may help to adapt LIO_SAM for your own sensors! It has some changes co
 - support normal GNSS, we do not need to adapt for the robot_localization node.
 - support the gps constraint visualization module to help debugging the normal GNSS.(the following picture)
 
+![image-20220531015953876](README/image-20220531015953876.png)
+
+## Latest Update Logs(2022-05-30)
+
+- More stable GNSS initialization and online optimization modules (some strategies).
+
+- More accurate initial GPS points for prior map-based localization.
+
+- Add some empirical loop edges filtering strategies.
+
+- Tested on vlp16 and ouster128 outdoor datasets.The algorithm outperforms FASTLIO2 on the latter dataset.
+
+![image-20220531013915533](README/image-20220531013915533.png)
+
+![image-20220531005611992](README/image-20220531005611992.png)
+
+## TO DO
+
+1. colored point cloud  map
+2. dynamic object removal
+3. Using GNSS Raw Observations
+
+As soon as I have time I will continue to update this repo and release more data.
+
 # Introduction
 
-LIO_SAM is only used for 9-axis IMU, for the following reasons.
+LIO_SAM is only designed for 9-axis IMU, for the following reasons.
 
 - the initialization module need absolute orientation to initialize the LIO system.
 - the back-end GNSS-based optimization relies on the robot_localization node, and also requires a 9-axis IMU.
 
 Therefore, only minor changes to the original code are required.  which can directly use GPS points of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and extrinsics between lidars and IMUs, such as Hesai.
 
-![image-20220421102351677](README/image-20220421102351677.png)
-
 we add the gps constraint visualization module to help debugging the normal gps(red lines represents for gps constraint).
 
 ![GPS constrain visualization](README/image-20220421113413972.png)
 
 
-
-## Latest Update Logs(2022-05-23)
-
-- add data saver to save map pcd、g2o files、odom.txt in KITTI or TUM format, also rosbag to save distorted point cloud and optimized odomtry.
-- fix the bugs of gps constraint visualization module
-- fix the bugs of the timestamp alignment between gps and lidar. You should to set a proper gps frequence.
-- add the batch running scripts to get the LIO_SAM_6AXIS results of multi-sequence automatically. You only need to set the rosbag file path and file name.
-
-![red line reprents gps constraint](README/image-20220525042950882.png)
 
 # Run
 
@@ -77,7 +90,11 @@ python3 src/LIO-SAM-6AXIS/scripts/lio_loop_batch.py
 
 ### Save Results
 
-when you shut down the terminal, all the date will store in the  folder`LIO_SAM_6AXIS/data/(your sequence  name)/`.
+I will give the map and related example results constructed based on the instance data using LIO_SAM_6AXIS, once the sharing function of Baidu netdisk is normal.
+
+```bash
+rosservice call /lio_sam_6axis/save_map
+```
 
 - `campus_result.bag`: inlcude 2 topics, the distorted point cloud and the optimzed odometry
 
@@ -93,21 +110,13 @@ when you shut down the terminal, all the date will store in the  folder`LIO_SAM_
 
 - `globalmap_imu.pcd`: global map in IMU body frame, but you need to set proper extrinsics.
 
-![image-20220525044008465](README/image-20220525044008465.png)
+- `globalmap_lidar_feature.pcd`: edge+planer points map, based on lidar frame.
 
-# Problems
+- `origin.txt`: The origin of the point cloud map, which can be used for prior map-based localization.  
 
-1. `velodyne` + `stim300`(6 axis)+`gps` codes and data are available, but only for testing!  we will update the new version of codes later. 
+![image-20220531020430243](README/image-20220531020430243.png)
 
-   > LIO_SAM will be difficult to close the loop without GPS or may crash directly in the later downhill road. You can test it yourself and find the reason. 
-
-2. **ouster+stim300**/**pandar + 6-aixs IMU** are all available, we will release the test data around June. 
-
-   > Please note that some people have different ways of modifying the timestamps in the driver module when using ouster. Remember to modify the unit of time in the timestamps.
-
-3. I am looking for the stable GPS odom information to initialize the LIO system in the `updateInitialGuess` function of the `mapOptmization` node. Although this method works, it is not the best choice.
-
-# Data
+# Dataset
 
 We provided a very challenging long-distance vehicle dataset. You can get the campus data in  [dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4).
 
