@@ -5,13 +5,14 @@ This repo may help to adapt LIO_SAM for your own sensors! It has some changes co
 - support normal GNSS, we do not need to adapt for the robot_localization node.
 - support the gps constraint visualization module to help debugging the normal GNSS.(the following picture)
 
-![image-20220531015953876](README/image-20220531015953876.png)
+<img src="README/image-20220531015953876.png" alt="image-20220531015953876" style="zoom: 50%;" />
 
 ## Latest News(2022-06-08)
 
-- More stable origin LLA node
+- More accurate origin LLA point.
 - Support KML file and we can see the trajectory in GoogleMaps.
-![image-20220609035032131](README/image-20220609035032131.png)
+
+<img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
 
 # Introduction
 
@@ -24,7 +25,7 @@ Therefore, only minor changes to the original code are required.  which can dire
 
 we add the gps constraint visualization module to help debugging the normal gps(red lines represents for gps constraint).
 
-![GPS constrain visualization](README/image-20220421113413972.png)
+<img src="README/image-20220421113413972.png" alt="GPS constrain visualization" style="zoom:50%;" />
 
 # Run
 
@@ -98,7 +99,7 @@ rosservice call /lio_sam_6axis/save_map
 
 - `optimized_gps_trajectry.kml`: KML file for optimized trajectory, you can show it in GoogleMaps.
 
-![image-20220609044824460](README/image-20220609044824460.png)
+<img src="README/image-20220609044824460.png" alt="image-20220609044824460" style="zoom: 80%;" />
 
 # Dataset and Adaption
 
