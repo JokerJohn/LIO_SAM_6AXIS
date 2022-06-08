@@ -55,6 +55,13 @@ void DataSaver::setDir(string _base_dir, string _sequence_name) {
 //  LOG(INFO) << "SET DIR:" << save_directory;
 }
 
+void DataSaver::setConfigDir(string _config_dir) {
+    if (_config_dir.back() != '/') {
+        _config_dir.append("/");
+    }
+    this->config_directory = _config_dir;
+}
+
 
 void DataSaver::setExtrinc(bool _use_imu, Eigen::Vector3d _t_body_sensor, Eigen::Quaterniond _q_body_sensor) {
     this->use_imu_frame = _use_imu;
@@ -341,3 +348,93 @@ void DataSaver::savePointCloudMap(pcl::PointCloud<PointT> cloud_ptr) {
     pcl::io::savePCDFileASCII(save_directory + "globalmap_lidar_feature.pcd", cloud_ptr);
 }
 
+/*read parameter from kml_config.xml*/
+int DataSaver::readParameter() {
+    xmlDocPtr pDoc = xmlReadFile((config_directory + "kml_config.xml").c_str(), "UTF-8",
+                                 XML_PARSE_RECOVER);
+    if (NULL == pDoc) {
+        std::cout << "open config.xml error\n" << std::endl;
+        return 1;
+    }
+
+    xmlNodePtr pRoot = xmlDocGetRootElement(pDoc);
+    if (NULL == pRoot) {
+        std::cout << "get config.xml root error\n" << std::endl;
+        return 1;
+    }
+
+    xmlNodePtr pFirst = pRoot->children;
+
+    while (NULL != pFirst) {
+        xmlChar *value = NULL;
+        if (!xmlStrcmp(pFirst->name, (const xmlChar *) ("style"))) {
+            xmlNodePtr pStyle = pFirst->children;
+            while (NULL != pStyle) {
+                value = xmlNodeGetContent(pStyle);
+                if (xmlStrcmp(pStyle->name, (const xmlChar *) ("text"))) {
+                    configParameter.push_back((char *) value);
+                }
+                pStyle = pStyle->next;
+            }
+        } else if (!xmlStrcmp(pFirst->name, (const xmlChar *) ("Placemark"))) {
+            xmlNodePtr pPlacemark = pFirst->children;
+            while (NULL != pPlacemark) {
+                value = xmlNodeGetContent(pPlacemark);
+                if (xmlStrcmp(pPlacemark->name, (const xmlChar *) ("text"))) {
+                    configParameter.push_back((char *) value);
+                }
+                pPlacemark = pPlacemark->next;
+            }
+        } else {
+            value = xmlNodeGetContent(pFirst);
+            if (xmlStrcmp(pFirst->name, (const xmlChar *) ("text"))) {
+                configParameter.push_back((char *) value);
+            }
+        }
+        pFirst = pFirst->next;
+    }
+    return 0;
+}
+
+int DataSaver::saveKMLTrajectory(const std::vector<Eigen::Vector3d> lla_vec) {
+    if (1 == readParameter()) {
+        return 1;
+    }
+
+    // longitude, latitude, height
+    std::fstream ofile(save_directory + "optimized_gps_trajectry.kml", std::fstream::out);
+    ofile.precision(15);
+
+    int index = 0;
+    ofile << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+    ofile << "<kml xmlns=\"http://www.opengis.net/kml/2.2\">" << endl;
+    ofile << "<Document>" << endl;
+    ofile << "<name>" << "GPS Trajectory" << "</name>" << endl;
+    ofile << "<description>" << "GPS Trajectory" << "</description>" << endl;
+
+    ofile << "<Style id=\"" << configParameter[index++] << "\">" << endl;
+    ofile << "<LineStyle>" << endl;
+    ofile << "<color>" << "7fFF00FF" << "</color>" << endl;
+    ofile << "<width>" << configParameter[index++] << "</width>" << endl;
+    ofile << "</LineStyle>" << endl;
+    ofile << "<PolyStyle>" << endl;
+    ofile << "<color>" << "7fFF00FF" << "</color>" << endl;
+    ofile << "</PolyStyle>" << endl;
+    ofile << "</Style>" << endl;
+    ofile << "<Placemark>" << endl;
+    ofile << "<styleUrl>" << configParameter[index++] << "</styleUrl>" << endl;
+    ofile << "<LineString>" << endl;
+    ofile << "<extrude>" << configParameter[index++] << "</extrude>" << endl;
+    ofile << "<tessellate>" << configParameter[index++] << "</tessellate>" << endl;
+    ofile << "<altitudeMode>" << configParameter[index++] << "</altitudeMode>" << endl;
+    ofile << "<coordinates>" << endl;
+
+    for (int i = 0; i < lla_vec.size(); i++) {
+        ofile << lla_vec.at(i)[1] << ',' << lla_vec.at(i)[0] << ',' << lla_vec.at(i)[2] << endl;
+    }
+
+    ofile << "</coordinates>" << endl;
+    ofile << "</LineString></Placemark>" << endl;
+    ofile << "</Document></kml>" << endl;
+    return 0;
+}

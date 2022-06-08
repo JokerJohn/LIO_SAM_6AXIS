@@ -1,0 +1,12 @@
+<xml>
+    <style>
+        <styleid>GPScolor</styleid>
+        <Linewidth>4</Linewidth>
+    </style>
+    <Placemark>
+        <styleUrl>#GPScolor</styleUrl>
+        <Lineextrude>1</Lineextrude>
+        <Linetessellate>1</Linetessellate>
+        <LinealtitudeMode>absolute</LinealtitudeMode>
+    </Placemark>
+</xml>

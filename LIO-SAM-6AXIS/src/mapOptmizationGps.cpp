@@ -252,7 +252,7 @@ public:
         dataSaverPtr = std::make_unique<DataSaver>(saveDirectory, sequence);
         // use imu frame when saving map
         dataSaverPtr->setExtrinc(true, t_body_sensor, q_body_sensor);
-
+        dataSaverPtr->setConfigDir(configDirectory);
 
         allocateMemory();
         std::cout << savePCDDirectory << std::endl;
@@ -473,10 +473,31 @@ public:
         }
 
 
+        GpsTools gpsTools;
+        // when you shut down the terminal , we will save odom  and map
+        Eigen::Vector3d optimized_lla;
+        if (useGPS) {
+            Eigen::Vector3d first_point(cloudKeyPoses6D->at(0).x, cloudKeyPoses6D->at(0).y, cloudKeyPoses6D->at(0).z);
+            GpsTools gpsTools;
+            gpsTools.lla_origin_ = transLLA;
+
+            // we save optimized origin gps point, maybe the altitude value need to be fixes
+            Eigen::Vector3d ecef_point;
+            ecef_point = gpsTools.ENU2ECEF(first_point);
+            optimized_lla = gpsTools.ECEF2LLA(ecef_point);
+
+            std::cout << std::setprecision(9) << "origin LLA: " << transLLA.transpose() << std::endl;
+            std::cout << std::setprecision(9) << "optimized LLA: " << optimized_lla.transpose() << std::endl;
+            dataSaverPtr->saveOriginGPS(optimized_lla);
+        }
+        // update origin gps point
+        gpsTools.lla_origin_ = optimized_lla;
+
+
         vector<pcl::PointCloud<PointType>::Ptr> keyframePc;
+        std::vector<Eigen::Vector3d> lla_vec;
         pcl::PointCloud<PointType>::Ptr temp_ptr(new pcl::PointCloud<PointType>);
         for (int i = 0; i < cloudKeyPoses6D->size(); ++i) {
-
             PointTypePose p = cloudKeyPoses6D->at(i);
 
             // keyframeTimes.push_back(p.time);
@@ -502,6 +523,15 @@ public:
             //            *temp_ptr += *surfCloudKeyFrames.at(i);
             //            *temp_ptr += *cornerCloudKeyFrames.at(i);
             //            keyframePc.push_back(temp_ptr);
+
+            if (useGPS) {
+                // we save optimized origin gps point, maybe the altitude value need to be fixes
+                Eigen::Vector3d first_point(p.x, p.y, p.z);
+                Eigen::Vector3d lla_point, ecef_point;
+                ecef_point = gpsTools.ENU2ECEF(first_point);
+                lla_point = gpsTools.ECEF2LLA(ecef_point);
+                lla_vec.push_back(lla_point);
+            }
         }
 
         std::cout << "TImes, isam, raw_odom, pose_odom, pose3D, pose6D size: " <<
@@ -513,27 +543,16 @@ public:
                   << laserCloudRawKeyFrames.size() << std::endl;
 
 
-        // when you shut down the terminal , we will save odom  and map
-        if (useGPS) {
-            Eigen::Vector3d first_point(cloudKeyPoses6D->at(0).x, cloudKeyPoses6D->at(0).y, cloudKeyPoses6D->at(0).z);
-            GpsTools gpsTools;
-            gpsTools.lla_origin_ = transLLA;
-
-            // we save optimized origin gps point, maybe the altitude value need to be fixes
-            Eigen::Vector3d lla_point, ecef_point;
-            ecef_point = gpsTools.ENU2ECEF(first_point);
-            lla_point = gpsTools.ECEF2LLA(ecef_point);
-
-            std::cout << std::setprecision(9) << "origin LLA: " << transLLA.transpose() << std::endl;
-            std::cout << std::setprecision(9) << "optimized LLA: " << lla_point.transpose() << std::endl;
-            dataSaverPtr->saveOriginGPS(lla_point);
-        }
         dataSaverPtr->saveTimes(keyframeTimes);
         dataSaverPtr->saveGraphGtsam(gtSAMgraph, isam, isamCurrentEstimate);
         dataSaverPtr->saveOptimizedVerticesTUM(isamCurrentEstimate);
         dataSaverPtr->saveOptimizedVerticesKITTI(isamCurrentEstimate);
         dataSaverPtr->saveOdometryVerticesTUM(keyframeRawOdom);
         dataSaverPtr->saveResultBag(keyframePosesOdom, allResVec);
+
+        if (useGPS)
+            dataSaverPtr->saveKMLTrajectory(lla_vec);
+
 
         pcl::PointCloud<PointType>::Ptr globalCornerCloud(new pcl::PointCloud<PointType>());
         pcl::PointCloud<PointType>::Ptr globalCornerCloudDS(new pcl::PointCloud<PointType>());
@@ -1085,6 +1104,27 @@ public:
                         std::cout << "after rpy: " << eulerAngle2[0] << ", " << eulerAngle2[1] << ", " << eulerAngle2[2]
                                   << std::endl;
 
+
+                        // add first factor
+                        PointType gnssPoint;
+                        gnssPoint.x = alignedGPS.pose.pose.position.x,
+                        gnssPoint.y = alignedGPS.pose.pose.position.y,
+                        gnssPoint.z = alignedGPS.pose.pose.position.z;
+
+                        float noise_x = alignedGPS.pose.covariance[0];
+                        float noise_y = alignedGPS.pose.covariance[7];
+                        float noise_z = alignedGPS.pose.covariance[14];
+                        gtsam::Vector Vector3(3);
+                        Vector3 << noise_x, noise_y, noise_z;
+                        noiseModel::Diagonal::shared_ptr gps_noise = noiseModel::Diagonal::Variances(Vector3);
+                        gtsam::GPSFactor gps_factor(0, gtsam::Point3(alignedGPS.pose.pose.position.x,
+                                                                     alignedGPS.pose.pose.position.y,
+                                                                     alignedGPS.pose.pose.position.z),
+                                                    gps_noise);
+                        keyframeGPSfactor.push_back(gps_factor);
+                        cloudKeyGPSPoses3D->points.push_back(gnssPoint);
+
+
                         if (!useImuHeadingInitialization)
                             transformTobeMapped[2] = 0;
 
@@ -1094,6 +1134,7 @@ public:
                                                                        eulerAngle2[0],
                                                                        eulerAngle2[1],
                                                                        eulerAngle2[2]); // save imu
+
 
 
                         systemInitialized = true;
@@ -1779,7 +1820,7 @@ public:
             return;
 
         // wait for system initialized and settles down
-        if (cloudKeyPoses3D->points.empty())
+        if (cloudKeyPoses3D->points.empty() || cloudKeyPoses3D->points.size() == 1)
             return;
         else {
             if (pointDistance(cloudKeyPoses3D->front(), cloudKeyPoses3D->back()) < 5.0)
@@ -1881,7 +1922,9 @@ public:
                     ROS_WARN("Too large GNSS z noise %f", noise_z);
                     gtsam::Vector Vector3(3);
                     Vector3 << max(noise_x, 10000.0f), max(noise_y, 10000.0f), max(noise_z, 100000.0f);
-                    gps_noise = noiseModel::Diagonal::Variances(Vector3);
+                    // gps_noise = noiseModel::Diagonal::Variances(Vector3);
+                    // gps_factor = gtsam::GPSFactor(cloudKeyPoses3D->size(), gtsam::Point3(gps_x, gps_y, gps_z),
+                    // gps_noise);
                 }
                 // add loop constriant
                 gtSAMgraph.add(gps_factor);

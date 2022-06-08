@@ -10,6 +10,7 @@
 
     <!--- LOAM -->
     <param name="saveDirectory" type="string" value="$(find lio_sam_6axis)/data/"/>
+    <param name="configDirectory" type="string" value="$(find lio_sam_6axis)/config/"/>
     <rosparam param="sequence" subst_value="true">$(arg sequence)</rosparam>
     <include file="$(find lio_sam_6axis)/launch/include/module_loam.launch"/>
 

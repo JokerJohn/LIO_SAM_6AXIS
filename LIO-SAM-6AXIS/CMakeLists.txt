@@ -64,6 +64,8 @@ catkin_package(
 # include directories
 include_directories(
         include
+#    you need to install libxml2
+        /usr/include/libxml2
         ${catkin_INCLUDE_DIRS}
         ${PCL_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
@@ -77,6 +79,7 @@ link_directories(
         ${OpenCV_LIBRARY_DIRS}
         ${GTSAM_LIBRARY_DIRS}
 )
+link_libraries(-lxml2)
 
 ###########
 ## Build ##

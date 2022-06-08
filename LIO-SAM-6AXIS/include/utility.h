@@ -103,6 +103,7 @@ public:
     string savePCDDirectory;
     string sequence;
     string saveDirectory;
+    string configDirectory;
 
     // Lidar Sensor Configuration
     SensorType sensor;
@@ -210,6 +211,7 @@ public:
         nh.param<std::string>("lio_sam_6axis/savePCDDirectory", savePCDDirectory, "/Downloads/LOAM/");
         nh.param<std::string>("saveDirectory", saveDirectory, "/Downloads/LOAM/");
         nh.param<std::string>("sequence", sequence, "map");
+        nh.param<std::string>("configDirectory", configDirectory, "map");
 
         std::cout << "SAVE DIR:" << saveDirectory << std::endl;
 

@@ -26,6 +26,11 @@
 #include <pcl/filters/crop_box.h>
 #include <pcl_conversions/pcl_conversions.h>
 
+#include <libxml/tree.h>
+#include <libxml/xpath.h>
+#include <libxml/parser.h>
+#include <libxml/xmlmemory.h>
+#include <libxml/xmlstring.h>
 
 #include <gtsam/slam/dataset.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
@@ -47,6 +52,8 @@ public:
     DataSaver(string _base_dir, string _sequence_name);
 
     void setDir(string _base_dir, string _sequence_name);
+
+    void setConfigDir(string _configDirectory);
 
     void setExtrinc(bool _use_imu, Eigen::Vector3d _t_body_sensor, Eigen::Quaterniond _q_body_sensor);
 
@@ -77,10 +84,16 @@ public:
 
     void savePointCloudMap(pcl::PointCloud<PointT> allResVec);
 
+    int readParameter();
+
+    int saveKMLTrajectory(const std::vector<Eigen::Vector3d> lla_vec);
+
 private:
 
     string base_dir, sequence_name;
-    string save_directory;
+    string save_directory, config_directory;
+
+    vector<string> configParameter;
 
     bool use_imu_frame = false;
     Eigen::Quaterniond q_body_sensor;
