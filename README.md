@@ -71,6 +71,8 @@ when you want to test on multi-sequence rosbag with the same set of sensor equip
 python3 src/LIO-SAM-6AXIS/scripts/lio_loop_batch.py
 ```
 
+**Simple Video Tutorial**：
+
 ### Save Results
 
 I will give the map and related example results constructed based on the instance data using LIO_SAM_6AXIS, once the sharing function of Baidu netdisk is normal.

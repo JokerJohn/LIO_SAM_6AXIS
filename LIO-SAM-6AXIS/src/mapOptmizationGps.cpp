@@ -1092,16 +1092,20 @@ public:
                         transLLA = Eigen::Vector3d(alignedGPS.pose.covariance[1], alignedGPS.pose.covariance[2],
                                                    alignedGPS.pose.covariance[3]);
                         if (debugGps) {
-                            std::cout << "gps: " << gps_transform.matrix() << std::endl;
-                            std::cout << "gps LLA: " << transLLA.transpose() << std::endl;
+                            std::cout << "GPS: " << gps_transform.matrix() << std::endl;
+                            std::cout << "GPS LLA: " << transLLA.transpose() << std::endl;
                         }
-                        Eigen::Isometry3d transIMUAft = lidar_pose.inverse() * gps_transform;
-                        Eigen::Vector3d eulerAngle2 = transIMUAft.rotation().eulerAngles(0, 1, 2); // roll,pitch,yaw
+                        //Eigen::Isometry3d transIMUAft = lidar_pose.inverse() * gps_transform;
+                        //Eigen::Isometry3d transIMUAft = gps_transform;
+                        //Eigen::Vector3d eulerAngle2 = transIMUAft.rotation().eulerAngles(0, 1, 2); // roll,pitch,yaw
+                        Eigen::Vector3d eulerAngle2(0, 0, yaw); // roll,pitch,yaw
                         transformTobeMapped[0] = eulerAngle2[0];
                         transformTobeMapped[1] = eulerAngle2[1];
                         transformTobeMapped[2] = eulerAngle2[2];
 
-                        std::cout << "after rpy: " << eulerAngle2[0] << ", " << eulerAngle2[1] << ", " << eulerAngle2[2]
+                        std::cout << "LIO RPY: " << transformTobeMapped[1] << ", " << transformTobeMapped[2] << ", "
+                                  << transformTobeMapped[3] << std::endl;
+                        std::cout << "GPS RPY: " << eulerAngle2[0] << ", " << eulerAngle2[1] << ", " << eulerAngle2[2]
                                   << std::endl;
 
 
@@ -1117,9 +1121,9 @@ public:
                         gtsam::Vector Vector3(3);
                         Vector3 << noise_x, noise_y, noise_z;
                         noiseModel::Diagonal::shared_ptr gps_noise = noiseModel::Diagonal::Variances(Vector3);
-                        gtsam::GPSFactor gps_factor(0, gtsam::Point3(alignedGPS.pose.pose.position.x,
-                                                                     alignedGPS.pose.pose.position.y,
-                                                                     alignedGPS.pose.pose.position.z),
+                        gtsam::GPSFactor gps_factor(0, gtsam::Point3(gnssPoint.x,
+                                                                     gnssPoint.y,
+                                                                     gnssPoint.z),
                                                     gps_noise);
                         keyframeGPSfactor.push_back(gps_factor);
                         cloudKeyGPSPoses3D->points.push_back(gnssPoint);
@@ -1128,11 +1132,11 @@ public:
                         if (!useImuHeadingInitialization)
                             transformTobeMapped[2] = 0;
 
-                        lastImuTransformation = pcl::getTransformation(transIMUAft.translation().x(),
-                                                                       transIMUAft.translation().y(),
-                                                                       transIMUAft.translation().z(),
-                                                                       eulerAngle2[0],
-                                                                       eulerAngle2[1],
+                        lastImuTransformation = pcl::getTransformation(transformTobeMapped[4],
+                                                                       transformTobeMapped[5],
+                                                                       transformTobeMapped[6],
+                                                                       0,
+                                                                       0,
                                                                        eulerAngle2[2]); // save imu
 
 
@@ -1918,8 +1922,8 @@ public:
             } else {
                 // After the coordinate systems are aligned, in theory, the GPS z and the z estimated by the current LIO system should not be too different. Otherwise,
                 // there is a problem with the quality of the secondary GPS point.
-                if (abs(gps_z - cloudKeyPoses3D->back().z) > 8.0) {
-                    ROS_WARN("Too large GNSS z noise %f", noise_z);
+                if (abs(gps_z - cloudKeyPoses3D->back().z) > 10.0) {
+                    // ROS_WARN("Too large GNSS z noise %f", noise_z);
                     gtsam::Vector Vector3(3);
                     Vector3 << max(noise_x, 10000.0f), max(noise_y, 10000.0f), max(noise_z, 100000.0f);
                     // gps_noise = noiseModel::Diagonal::Variances(Vector3);

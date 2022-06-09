@@ -1,8 +1,7 @@
 <launch>
-
     <arg name="project" default="lio_sam_6axis"/>
     <arg name="bag_path" default="/xchu/data/hilti/exp09_cupola.bag"/>
-    <arg name="sequence" default="hkust"/>
+    <arg name="sequence" default="hkust_CAMPUS"/>
 
     <!-- Parameters -->
     <!--    <rosparam file="$(find lio_sam_6axis)/config/params_ouster.yaml" command="load"/>-->
