@@ -71,7 +71,7 @@ when you want to test on multi-sequence rosbag with the same set of sensor equip
 python3 src/LIO-SAM-6AXIS/scripts/lio_loop_batch.py
 ```
 
-**Simple Video Tutorial**：
+**Simple Video Tutorial**：[Bilibili](https://www.bilibili.com/video/BV1dY411M7hr/)
 
 ### Save Results
 
