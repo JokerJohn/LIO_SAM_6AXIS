@@ -42,13 +42,15 @@ my previous and current system:
 
 ## Simple Video Tutorial
 
-Whether you are running the sample data provided by me or adapting your own sensor, you can watch the detailed teaching video below
+Whether you are running the sample data provided by me or adapting your own sensor, you can watch the detailed teaching video below.
 
-**Video Tutorial**：[Bilibili](https://www.bilibili.com/video/BV1dY411M7hr/)、[Youtube](https://youtu.be/TgKSeNLkExc)
+**Video Tutorial**：[Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)、[Youtube](https://youtu.be/TgKSeNLkExc)
+
 
 ## Single Sequence
 
 when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! 
+[Gps initialization video](https://www.bilibili.com/video/BV1dY411M7hr/)
 
 ```
 roslaunch lio_sam_6axis run.launch
@@ -124,7 +126,7 @@ As soon as I have time I will continue to update this repo and release more data
 
 Thanks to  [Guoqing Zhang](https://github.com/MyEvolution), [Jianhao Jiao](https://github.com/gogojjh).
 
-Thanks for [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM).
+Thanks to [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM).
 
 
 
