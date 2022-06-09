@@ -11,6 +11,7 @@ This repo may help to adapt LIO_SAM for your own sensors! It has some changes co
 
 - More accurate origin LLA point.
 - Support KML file and we can see the trajectory in GoogleMaps.
+- Add video tutorial 
 
 <img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
 
