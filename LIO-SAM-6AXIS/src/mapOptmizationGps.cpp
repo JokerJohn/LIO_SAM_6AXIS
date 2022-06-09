@@ -1103,8 +1103,8 @@ public:
                         transformTobeMapped[1] = eulerAngle2[1];
                         transformTobeMapped[2] = eulerAngle2[2];
 
-                        std::cout << "LIO RPY: " << transformTobeMapped[1] << ", " << transformTobeMapped[2] << ", "
-                                  << transformTobeMapped[3] << std::endl;
+                        std::cout << "LIO RPY: " << transformTobeMapped[0] << ", " << transformTobeMapped[1] << ", "
+                                  << transformTobeMapped[2] << std::endl;
                         std::cout << "GPS RPY: " << eulerAngle2[0] << ", " << eulerAngle2[1] << ", " << eulerAngle2[2]
                                   << std::endl;
 
@@ -1132,9 +1132,9 @@ public:
                         if (!useImuHeadingInitialization)
                             transformTobeMapped[2] = 0;
 
-                        lastImuTransformation = pcl::getTransformation(transformTobeMapped[4],
+                        lastImuTransformation = pcl::getTransformation(transformTobeMapped[3],
+                                                                       transformTobeMapped[4],
                                                                        transformTobeMapped[5],
-                                                                       transformTobeMapped[6],
                                                                        0,
                                                                        0,
                                                                        eulerAngle2[2]); // save imu

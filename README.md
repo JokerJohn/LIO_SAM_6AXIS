@@ -29,7 +29,7 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 # Run
 
-### Dependences
+## Dependences
 
 the same as LIO_SAM.
 
@@ -39,7 +39,13 @@ my previous and current system:
 
 `Ubuntu20.04/PCL1.10/OpenCV3.4.16/GTSAM4.1`
 
-### Single Sequence
+## Simple Video Tutorial
+
+Whether you are running the sample data provided by me or adapting your own sensor, you can watch the detailed teaching video below
+
+**Video Tutorial**：[Bilibili](https://www.bilibili.com/video/BV1dY411M7hr/)、[Youtube](https://youtu.be/TgKSeNLkExc)
+
+## Single Sequence
 
 when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! 
 
@@ -57,7 +63,7 @@ when you set the `useGPS` true, you may get the following los. It means that the
 [ INFO] [1651092700.516052422]: curr gps cov: 11.022400, 11.022400 , 176.358400
 ```
 
-### Batch Scripts
+## Batch Scripts
 
 when you want to test on multi-sequence rosbag with the same set of sensor equipment. You just need to modify the script `LIO-SAM-6AXIS/scripts/lio_loop_batch.py`.
 
@@ -71,9 +77,7 @@ when you want to test on multi-sequence rosbag with the same set of sensor equip
 python3 src/LIO-SAM-6AXIS/scripts/lio_loop_batch.py
 ```
 
-**Simple Video Tutorial**：[Bilibili](https://www.bilibili.com/video/BV1dY411M7hr/)
-
-### Save Results
+## Save Results
 
 I will give the map and related example results constructed based on the instance data using LIO_SAM_6AXIS, once the sharing function of Baidu netdisk is normal.
 
