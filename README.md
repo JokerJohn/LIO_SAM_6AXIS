@@ -1,9 +1,12 @@
 # LIO_SAM_6AXIS
+
 This repo may help to adapt LIO_SAM for your own sensors! It has some changes comparing with the origin system.
 
 - support a 6-axis IMU, since the orientation information of IMU is not used in state estimation module.
 - support normal GNSS, we do not need to adapt for the robot_localization node.
 - support the gps constraint visualization module to help debugging the normal GNSS.(the following picture)
+ 
+![](README/test-16548681575981.gif)
 
 <img src="README/image-20220531015953876.png" alt="image-20220531015953876" style="zoom: 50%;" />
 
