@@ -115,7 +115,13 @@ rosservice call /lio_sam_6axis/save_map
 
 # Dataset and Adaption
 
-see [this doc](doc/adaption.md).
+See [this doc](doc/adaption.md).
+
+### For pandar dataset
+
+Download the [HILTI DATASET](https://hilti-challenge.com/dataset-2022.html).
+
+The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly!
 
 # TO DO
 
