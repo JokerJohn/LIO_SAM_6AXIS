@@ -39,9 +39,9 @@ the same as LIO_SAM.
 
 my previous and current system: 
 
-`Ubuntu18.04 /PCL1.8/OpenCV4.5/GTSAM4.0.2`
+`Ubuntu18.04 /PCL1.8/GTSAM4.0.2`
 
-`Ubuntu20.04/PCL1.10/OpenCV3.4.16/GTSAM4.1`
+`Ubuntu20.04/PCL1.10/GTSAM4.1`
 
 ## Simple Video Tutorial
 
