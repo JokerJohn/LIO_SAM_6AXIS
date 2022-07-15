@@ -1,7 +1,7 @@
 <xml>
     <style>
         <styleid>GPScolor</styleid>
-        <Linewidth>4</Linewidth>
+        <Linewidth>3</Linewidth>
     </style>
     <Placemark>
         <styleUrl>#GPScolor</styleUrl>

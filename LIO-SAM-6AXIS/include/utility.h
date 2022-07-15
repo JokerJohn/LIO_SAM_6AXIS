@@ -351,6 +351,7 @@ public:
 
 };
 
+
 template<typename T>
 sensor_msgs::PointCloud2 publishCloud(const ros::Publisher &thisPub,
                                       const T &thisCloud,

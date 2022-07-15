@@ -1,11 +1,10 @@
 <launch>
     <arg name="project" default="lio_sam_6axis"/>
-    <arg name="bag_path" default="/home/xchu/data/ramlab_dataset/hkust_20201105full.bag"/>
-    <arg name="sequence" default="hkust_CAMPUS"/>
+    <arg name="bag_path" default="/home/xchu/data/ramlab_dataset/20220226_campus_road_day_ref_lidar_bodyimu.bag"/>
+    <arg name="sequence" default="20220226_campus_road_day_ref_lidar_bodyimu"/>
 
     <!-- Parameters -->
-    <!--    <rosparam file="$(find lio_sam_6axis)/config/params_ouster.yaml" command="load"/>-->
-    <rosparam file="$(find lio_sam_6axis)/config/params_vlp.yaml" command="load"/>
+    <rosparam file="$(find lio_sam_6axis)/config/test_ouster128.yaml" command="load"/>
 
     <!--- LOAM -->
     <param name="saveDirectory" type="string" value="$(find lio_sam_6axis)/data/"/>

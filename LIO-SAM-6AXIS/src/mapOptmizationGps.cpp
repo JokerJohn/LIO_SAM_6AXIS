@@ -837,7 +837,7 @@ public:
             for (int j = loopKeyPre; j < loopKeyCur; ++j) {
                 distance += keyframeDistances.at(j);
             }
-            if (distance < 10) {
+            if (distance < 12) {
                 std::cout << "CLOSE FRAME MUST FILTER OUT " << distance << std::endl;
                 return false;
             }
@@ -896,6 +896,8 @@ public:
 
         *latestID = loopKeyCur;
         *closestID = loopKeyPre;
+
+        ROS_INFO("VISUAL LOOP INDEX: %d, %d", loopKeyCur, loopKeyPre);
 
         return true;
     }
@@ -1097,7 +1099,10 @@ public:
                         }
                         //Eigen::Isometry3d transIMUAft = lidar_pose.inverse() * gps_transform;
                         //Eigen::Isometry3d transIMUAft = gps_transform;
-                        //Eigen::Vector3d eulerAngle2 = transIMUAft.rotation().eulerAngles(0, 1, 2); // roll,pitch,yaw
+                        // Eigen::Vector3d eulerAngle2 = transIMUAft.rotation().eulerAngles(0, 1, 2); // roll,pitch,yaw
+
+                        // IN fact we don't need to assign a value to transformTobeMapped[2],
+                        // because the trajectory will be well aligned after accumulating 20 gps factors
                         Eigen::Vector3d eulerAngle2(0, 0, yaw); // roll,pitch,yaw
                         transformTobeMapped[0] = eulerAngle2[0];
                         transformTobeMapped[1] = eulerAngle2[1];
@@ -1110,6 +1115,8 @@ public:
 
 
                         // add first factor
+                        // we need this origin GPS point for prior map based localization
+                        // but we need to optimize its value by pose graph if the origin gps data is not fixed.
                         PointType gnssPoint;
                         gnssPoint.x = alignedGPS.pose.pose.position.x,
                         gnssPoint.y = alignedGPS.pose.pose.position.y,
@@ -1128,10 +1135,7 @@ public:
                         keyframeGPSfactor.push_back(gps_factor);
                         cloudKeyGPSPoses3D->points.push_back(gnssPoint);
 
-
-                        if (!useImuHeadingInitialization)
-                            transformTobeMapped[2] = 0;
-
+                        // update previous pose
                         lastImuTransformation = pcl::getTransformation(transformTobeMapped[3],
                                                                        transformTobeMapped[4],
                                                                        transformTobeMapped[5],

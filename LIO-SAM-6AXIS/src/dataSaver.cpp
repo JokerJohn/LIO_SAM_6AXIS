@@ -20,7 +20,7 @@ DataSaver::DataSaver(string _base_dir, string _sequence_name) {
         _base_dir.append("/");
     }
     save_directory = _base_dir + sequence_name + '/';
-    //LOG(INFO) << "SAVE DIR:" << save_directory;
+    std::cout << "SAVE DIR:" << save_directory << std::endl;
 
     auto unused = system((std::string("exec rm -r ") + save_directory).c_str());
     unused = system((std::string("mkdir -p ") + save_directory).c_str());
@@ -51,8 +51,6 @@ void DataSaver::setDir(string _base_dir, string _sequence_name) {
 
     auto unused = system((std::string("exec rm -r ") + save_directory).c_str());
     unused = system((std::string("mkdir -p ") + save_directory).c_str());
-
-//  LOG(INFO) << "SET DIR:" << save_directory;
 }
 
 void DataSaver::setConfigDir(string _config_dir) {
@@ -318,7 +316,13 @@ void DataSaver::savePointCloudMap(std::vector<nav_msgs::Odometry> allOdometryVec
         globalmap->height = 1;
         globalmap->is_dense = false;
 
-        pcl::io::savePCDFileASCII(save_directory + "globalmap_lidar.pcd", *globalmap);
+        try {
+            pcl::io::savePCDFileASCII(save_directory + "global_map_lidar.pcd", *globalmap);
+            cout << "current scan saved to : " << save_directory << ", " << globalmap->points.size() << endl;
+        } catch (std::exception e) {
+            ROS_ERROR("SAVE PCD ERROR", globalmap->points.size());
+        }
+
 
         // all cloud must rotate to body axis
         if (use_imu_frame) {
@@ -331,7 +335,12 @@ void DataSaver::savePointCloudMap(std::vector<nav_msgs::Odometry> allOdometryVec
                 pt.y = translation[1];
                 pt.z = translation[2];
             }
-            pcl::io::savePCDFileASCII(save_directory + "globalmap_imu.pcd", *globalmap);
+            try {
+                pcl::io::savePCDFileASCII(save_directory + "globalmap_imu.pcd", *globalmap);
+                cout << "current scan saved to : " << save_directory << ", " << globalmap->points.size() << endl;
+            } catch (std::exception e) {
+                ROS_ERROR("SAVE PCD ERROR", globalmap->points.size());
+            }
         }
     } else
         std::cout << "EMPTY POINT CLOUD";
@@ -339,14 +348,14 @@ void DataSaver::savePointCloudMap(std::vector<nav_msgs::Odometry> allOdometryVec
 }
 
 void DataSaver::savePointCloudMap(pcl::PointCloud<PointT> cloud_ptr) {
-
-
     if (cloud_ptr.empty()) {
         std::cout << "empty global map cloud!" << std::endl;
         return;
     }
     pcl::io::savePCDFileASCII(save_directory + "globalmap_lidar_feature.pcd", cloud_ptr);
 }
+
+
 
 /*read parameter from kml_config.xml*/
 int DataSaver::readParameter() {

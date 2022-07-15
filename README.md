@@ -10,13 +10,13 @@ This repo may help to adapt LIO_SAM for your own sensors! It has some changes co
 
 <img src="README/image-20220531015953876.png" alt="image-20220531015953876" style="zoom: 50%;" />
 
-## Latest News(2022-06-08)
-
-- More accurate origin LLA point.
-- Support KML file and we can see the trajectory in GoogleMaps.
-- Add video tutorial 
-
 <img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
+
+## Latest News(2022-07-15)
+
+- remove some useless codes in `updateInitialGuess` fuction
+
+
 
 # Introduction
 
@@ -122,6 +122,14 @@ See [this doc](doc/adaption.md).
 Download the [HILTI DATASET](https://hilti-challenge.com/dataset-2022.html).
 
 The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly!
+
+
+
+# Related Package
+
+- [LIO-SAM-6AXIS-UrbanNav](https://github.com/zhouyong1234/LIO-SAM-6AXIS-UrbanNav)
+
+
 
 # TO DO
 

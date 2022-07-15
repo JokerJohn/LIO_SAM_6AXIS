@@ -70,7 +70,7 @@ private:
 
         // make sure your initial yaw and origin postion are consistent
         if (!firstYawInit) {
-            ROS_ERROR("waiting init origin yaw");
+            // ROS_ERROR("waiting init origin yaw");
             return;
         }
 
@@ -96,6 +96,7 @@ private:
         odom_msg.pose.covariance[1] = lla[0];
         odom_msg.pose.covariance[2] = lla[1];
         odom_msg.pose.covariance[3] = lla[2];
+        odom_msg.pose.covariance[4] = msg->status.status;
         if (orientationReady_)
             odom_msg.pose.pose.orientation = yawQuat;
         else {
