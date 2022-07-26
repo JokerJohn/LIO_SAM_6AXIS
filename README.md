@@ -38,7 +38,7 @@ rosbag decompress 20220216_garden_day_ref_compressed.bag
 
 #### 2. [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY)
 
-- integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. We put the code in another repo .
+- integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. 
 
 ![image-20220716211813361](README/image-20220716205706914.png)
 
@@ -55,7 +55,7 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 <img src="README/image-20220421113413972.png" alt="GPS constrain visualization" style="zoom:50%;" />
 
-# Run
+# Usage
 
 ## Dependences
 
