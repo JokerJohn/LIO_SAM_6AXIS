@@ -1,7 +1,6 @@
 lio_sam_6axis:
 
   # for ouster and stim300(6 axis)
-  # Topics
   pointCloudTopic: "/os_cloud_node/points"               # Point cloud data
   imuTopic: "/stim300/imu/data_raw"
   odomTopic: "odometry/imu"                   # IMU pre-preintegration odometry, same frequency as IMU
@@ -78,7 +77,7 @@ lio_sam_6axis:
   mappingProcessInterval: 0.15                  # seconds, regulate mapping frequency
 
   # Surrounding map
-  surroundingkeyframeAddingDistThreshold: 0.2   # meters, regulate keyframe adding threshold
+  surroundingkeyframeAddingDistThreshold: 0.1   # meters, regulate keyframe adding threshold
   surroundingkeyframeAddingAngleThreshold: 0.1  # radians, regulate keyframe adding threshold
   surroundingKeyframeDensity: 2.0               # meters, downsample surrounding keyframe poses
   surroundingKeyframeSearchRadius: 30.0         # meters, within n meters scan-to-map optimization (when loop closure disabled)
@@ -88,9 +87,9 @@ lio_sam_6axis:
   loopClosureFrequency: 2.0                     # Hz, regulate loop closure constraint add frequency
   surroundingKeyframeSize: 30                   # submap size (when loop closure enabled)
   historyKeyframeSearchRadius: 30.0             # meters, key frame that is within n meters from current pose will be considerd for loop closure
-  historyKeyframeSearchTimeDiff: 25.0           # seconds, key frame that is n seconds older will be considered for loop closure
+  historyKeyframeSearchTimeDiff: 30.0           # seconds, key frame that is n seconds older will be considered for loop closure
   historyKeyframeSearchNum: 25                  # number of hostory key frames will be fused into a submap for loop closure
-  historyKeyframeFitnessScore: 0.8              # icp threshold, the smaller the better alignment
+  historyKeyframeFitnessScore: 0.1              # icp threshold, the smaller the better alignment
 
   # Visualization
   globalMapVisualizationSearchRadius: 1000.0    # meters, global map visualization radius
@@ -100,16 +99,4 @@ lio_sam_6axis:
   # mapping
   globalMapLeafSize: 0.1                        # saved map voxgrid size
 
-
-# Navsat (convert GPS coordinates to Cartesian)
-navsat:
-  frequency: 50
-  wait_for_datum: false
-  delay: 0.0
-  magnetic_declination_radians: 0
-  yaw_offset: 0
-  zero_altitude: true
-  broadcast_utm_transform: false
-  broadcast_utm_transform_as_parent_frame: false
-  publish_filtered_gps: false
 

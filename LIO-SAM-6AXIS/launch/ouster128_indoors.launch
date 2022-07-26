@@ -1,10 +1,10 @@
 <launch>
 
     <arg name="project" default="lio_sam_6axis"/>
-<!--    <arg name="bag_path" default="/home/xchu/data/ramlab_dataset/20220216_garden_day_ref.bag"/>-->
-<!--    <arg name="sequence" default="garden_day"/>-->
-    <arg name="bag_path" default="/home/xchu/data/ramlab_dataset/20220424_lab_one_loop_ref.bag"/>
-    <arg name="sequence" default="lab_one_loop"/>
+    <arg name="bag_path" default="/home/xchu/data/ramlab_dataset/20220216_garden_day_ref.bag"/>
+    <arg name="sequence" default="garden_day"/>
+    <!--    <arg name="bag_path" default="/home/xchu/data/ramlab_dataset/20220424_lab_one_loop_ref.bag"/>-->
+    <!--    <arg name="sequence" default="lab_one_loop"/>-->
 
     <!-- Parameters -->
     <!--    <rosparam file="$(find lio_sam_6axis)/config/params_ouster.yaml" command="load"/>-->
@@ -22,7 +22,7 @@
     <node pkg="lio_sam_6axis" type="lio_sam_6axis_gpsOdometry" name="lio_sam_6axis_gpsOdometry"/>
 
     <!--    loop detector-->
-    <include file="$(find imaging_lidar_place_recognition)/launch/ouster128_indoors.launch"/>
+    <!--    <include file="$(find imaging_lidar_place_recognition)/launch/ouster128_indoors.launch"/>-->
 
     <!--- Run Rviz-->
     <node pkg="rviz" type="rviz" name="$(arg project)_rviz"

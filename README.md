@@ -12,13 +12,33 @@ This repo may help to adapt LIO_SAM for your own sensors! It has some changes co
 
 <img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
 
-## Latest News(2022-07-16)
+## Latest News(2022-07-26)
 
-- integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. We put the code in another repo [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY).
+![image-20220726183035458](README/image-20220726183035458.png)
 
-- remove some useless codes in `updateInitialGuess` fuction
+**new dataset released!** 
 
-  <img src="README/image-20220716212204621.png" alt="image-20220716212204621" style="zoom:50%;" />
+- garden_day: [one_drive](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE)
+
+when you download this compressed data, remember to execute the following command
+
+```bash
+rosbag decompress 20220216_garden_day_ref_compressed.bag
+```
+
+**[FusionPortable(IROS 2022)](dataset/iros2022_supp_material.pdf)**：
+
+![image-20220717141558342](README/image-20220717141558342.png)
+
+# Related Package
+
+#### 1. [LIO-SAM-6AXIS-UrbanNav](https://github.com/zhouyong1234/LIO-SAM-6AXIS-UrbanNav)
+
+- LIO_SAM 6轴IMU适配香港城市数据集UrbanNav，并给出添加GPS约束和不加GPS约束的结果
+
+#### 2. [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY)
+
+- integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. We put the code in another repo .
 
 ![image-20220716211813361](README/image-20220716205706914.png)
 
@@ -56,6 +76,8 @@ Whether you are running the sample data provided by me or adapting your own sens
 
 ## Single Sequence
 
+- hkust_20201105full_correct2
+
 when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! 
 [Gps initialization video](https://www.bilibili.com/video/BV1dY411M7hr/)
 
@@ -71,6 +93,14 @@ when you set the `useGPS` true, you may get the following los. It means that the
 [ INFO] [1651092700.516037958]: curr gps cov: 11.022400, 11.022400 , 176.358400
 [ INFO] [1651092700.516045476]: curr gps pose: 13.868968, 8.179937 , 4.978980
 [ INFO] [1651092700.516052422]: curr gps cov: 11.022400, 11.022400 , 176.358400
+```
+
+- garden_day
+
+when you use the **garden_day** rosbag, set your **bag_path** in the **LIO-SAM-6AXIS/launch/ouster128_indoors.launch**.
+
+```bash
+roslaunch lio_sam_6axis ouster128_indoors.launch
 ```
 
 ## Batch Scripts
@@ -119,21 +149,25 @@ rosservice call /lio_sam_6axis/save_map
 
 # Dataset and Adaption
 
+#### Velodyne 16
+
+- hkust_20201105full_correct2
+
+​		[dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4).
+
 See [this doc](doc/adaption.md).
 
-### For pandar dataset
+#### Pandar dataset
 
 Download the [HILTI DATASET](https://hilti-challenge.com/dataset-2022.html).
 
 The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly!
 
+#### Ouster dataset
 
+- garden_day 
 
-# Related Package
-
-- [LIO-SAM-6AXIS-UrbanNav](https://github.com/zhouyong1234/LIO-SAM-6AXIS-UrbanNav)
-
-
+  [one_drive](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE)
 
 # TO DO
 
