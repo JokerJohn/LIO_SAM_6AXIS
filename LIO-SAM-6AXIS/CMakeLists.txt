@@ -31,11 +31,6 @@ if(NOT LIBXML2_FOUND)
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(Y REQUIRED libxml-2.0)
 endif()
-find_package(libxml QUIET)
-if(NOT LIBXML_FOUND)
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(Z REQUIRED libxml)
-endif()
 
 add_message_files(
         DIRECTORY msg
@@ -79,7 +74,6 @@ include_directories(
         ${OpenCV_INCLUDE_DIRS}
         ${GTSAM_INCLUDE_DIR}
         ${Y_INCLUDE_DIRS}
-        ${Z_INCLUDE_DIRS}
         ${LIBXML2_INCLUDE_DIRS}
 )
 
@@ -91,7 +85,6 @@ link_directories(
         ${GTSAM_LIBRARY_DIRS}
         ${LIBXML2_LIBRARY_DIR}
         ${Y_LIBRARY_DIRS}
-        ${Z_LIBRARY_DIRS}
 )
 
 ###########
@@ -101,24 +94,24 @@ link_directories(
 
 # Gps odometry
 add_executable(${PROJECT_NAME}_gpsOdometry src/simpleGpsOdom.cpp)
-target_link_libraries(${PROJECT_NAME}_gpsOdometry ${catkin_LIBRARIES} ${LIBXML2_LIBRARIES} ${Y_LIBRARIES} ${Z_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_gpsOdometry ${catkin_LIBRARIES} ${LIBXML2_LIBRARIES} ${Y_LIBRARIES})
 
 # Range Image Projection
 add_executable(${PROJECT_NAME}_imageProjection src/imageProjection.cpp)
 add_dependencies(${PROJECT_NAME}_imageProjection ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
-target_link_libraries(${PROJECT_NAME}_imageProjection ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${Y_LIBRARIES} ${Z_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_imageProjection ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${Y_LIBRARIES})
 
 # Feature Association
 add_executable(${PROJECT_NAME}_featureExtraction src/featureExtraction.cpp)
 add_dependencies(${PROJECT_NAME}_featureExtraction ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
-target_link_libraries(${PROJECT_NAME}_featureExtraction ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${Y_LIBRARIES} ${Z_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_featureExtraction ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${Y_LIBRARIES})
 
 # Mapping Optimization
 add_executable(${PROJECT_NAME}_mapOptmization src/mapOptmizationGps.cpp src/dataSaver.cpp)
 add_dependencies(${PROJECT_NAME}_mapOptmization ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 target_compile_options(${PROJECT_NAME}_mapOptmization PRIVATE ${OpenMP_CXX_FLAGS})
-target_link_libraries(${PROJECT_NAME}_mapOptmization ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${OpenMP_CXX_FLAGS} gtsam ${Y_LIBRARIES} ${Z_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_mapOptmization ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${OpenMP_CXX_FLAGS} gtsam ${Y_LIBRARIES})
 
 # IMU Preintegration
 add_executable(${PROJECT_NAME}_imuPreintegration src/imuPreintegration.cpp)
-target_link_libraries(${PROJECT_NAME}_imuPreintegration ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} gtsam ${Y_LIBRARIES} ${Z_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_imuPreintegration ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} gtsam ${Y_LIBRARIES})
