@@ -23,9 +23,14 @@ find_package(catkin REQUIRED COMPONENTS
         )
 
 find_package(OpenMP REQUIRED)
-find_package(PCL REQUIRED QUIET)
-find_package(OpenCV REQUIRED QUIET)
-find_package(GTSAM REQUIRED QUIET)
+find_package(PCL REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(GTSAM REQUIRED)
+find_package(libxml2 QUIET)
+if(NOT libxml2_FOUND)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(Y REQUIRED libxml2)
+endif()
 
 add_message_files(
         DIRECTORY msg
@@ -64,12 +69,12 @@ catkin_package(
 # include directories
 include_directories(
         include
-#    you need to install libxml2
-        /usr/include/libxml2
         ${catkin_INCLUDE_DIRS}
         ${PCL_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
         ${GTSAM_INCLUDE_DIR}
+        ${Y_INCLUDE_DIRS}
+        ${libxml2_INCLUDE_DIRS}
 )
 
 # link directories
@@ -78,8 +83,9 @@ link_directories(
         ${PCL_LIBRARY_DIRS}
         ${OpenCV_LIBRARY_DIRS}
         ${GTSAM_LIBRARY_DIRS}
+        ${libxml2_LIBRARY_DIRS}
+        ${Y_LIBRARY_DIRS}
 )
-link_libraries(-lxml2)
 
 ###########
 ## Build ##
@@ -88,7 +94,7 @@ link_libraries(-lxml2)
 
 # Gps odometry
 add_executable(${PROJECT_NAME}_gpsOdometry src/simpleGpsOdom.cpp)
-target_link_libraries(${PROJECT_NAME}_gpsOdometry ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_gpsOdometry ${catkin_LIBRARIES} ${libxml2_LIBRARIES} ${Y_LIBRARIES})
 
 # Range Image Projection
 add_executable(${PROJECT_NAME}_imageProjection src/imageProjection.cpp)
