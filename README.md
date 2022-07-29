@@ -169,6 +169,39 @@ The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/
 
   [one_drive](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE)
 
+# Docker
+
+`Dockerfile` is for people who don't want to break their own environment. Running the algorithm in the docker. Recommend! 
+
+```bash
+# please cd the folder which have Dockerfile first, approximately 10mins based on your internet and CPU
+docker build -t zhangkin/lio_sam_6axis .
+
+docker run -it --net=host --gpus all --name lio_sam_6axis zhangkin/lio_sam_6axis /bin/zsh
+
+# OR -v to link the folder from your computer into container (your_computer_loc:container_loc)
+docker run -it --net=host --gpus all --name lio_sam_6axis -v /home/kin/bag_data:/home/xchu/data/ramlab_dataset zhangkin/lio_sam_6axis /bin/zsh
+
+# in the container
+catkin build
+source devel/setup.zsh
+
+# with dataset download and linked ==> please see more usage in previous section
+roslaunch lio_sam_6axis ouster128_indoors.launch
+```
+
+对于在内地的同学，可以换源`dockerhub`后，直接拉取：
+
+```bash
+docker pull zhangkin/lio_sam_6axis
+```
+
+Example screen shot:
+
+![](README/docker_example.png)
+
+
+
 # TO DO
 
 1. colored point cloud  map
