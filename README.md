@@ -26,22 +26,6 @@ when you download this compressed data, remember to execute the following comman
 rosbag decompress 20220216_garden_day_ref_compressed.bag
 ```
 
-**[FusionPortable(IROS 2022)](dataset/iros2022_supp_material.pdf)**：
-
-![image-20220717141558342](README/image-20220717141558342.png)
-
-# Related Package
-
-#### 1. [LIO-SAM-6AXIS-UrbanNav](https://github.com/zhouyong1234/LIO-SAM-6AXIS-UrbanNav)
-
-- LIO_SAM 6轴IMU适配香港城市数据集UrbanNav，并给出添加GPS约束和不加GPS约束的结果
-
-#### 2. [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY)
-
-- integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. 
-
-![image-20220716211813361](README/image-20220716205706914.png)
-
 # Introduction
 
 LIO_SAM is only designed for 9-axis IMU, for the following reasons.
@@ -73,6 +57,36 @@ Whether you are running the sample data provided by me or adapting your own sens
 
 **Video Tutorial**：[Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)、[Youtube](https://youtu.be/TgKSeNLkExc)
 
+## Docker
+
+`Dockerfile` is for people who don't want to break their own environment. Running the algorithm in the docker. Recommend! 
+
+```bash
+# please cd the folder which have Dockerfile first, approximately 10mins based on your internet and CPU
+docker build -t zhangkin/lio_sam_6axis .
+
+docker run -it --net=host --gpus all --name lio_sam_6axis zhangkin/lio_sam_6axis /bin/zsh
+
+# OR -v to link the folder from your computer into container (your_computer_loc:container_loc)
+docker run -it --net=host --gpus all --name lio_sam_6axis -v /home/kin/bag_data:/home/xchu/data/ramlab_dataset zhangkin/lio_sam_6axis /bin/zsh
+
+# in the container
+catkin build
+source devel/setup.zsh
+
+# with dataset download and linked ==> please see more usage in previous section
+roslaunch lio_sam_6axis ouster128_indoors.launch
+```
+
+对于在内地的同学，可以换源`dockerhub`后，直接拉取：
+
+```bash
+docker pull zhangkin/lio_sam_6axis
+```
+
+Example screen shot:
+
+![](README/docker_example.png)
 
 ## Single Sequence
 
@@ -149,7 +163,7 @@ rosservice call /lio_sam_6axis/save_map
 
 # Dataset and Adaption
 
-#### Velodyne 16
+#### Velodyne 16 dataset
 
 - hkust_20201105full_correct2
 
@@ -169,36 +183,15 @@ The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/
 
   [one_drive](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE)
 
-# Docker
+# Related Package
 
-`Dockerfile` is for people who don't want to break their own environment. Running the algorithm in the docker. Recommend! 
+#### 1. [LIO-SAM-6AXIS-UrbanNav](https://github.com/zhouyong1234/LIO-SAM-6AXIS-UrbanNav)
 
-```bash
-# please cd the folder which have Dockerfile first, approximately 10mins based on your internet and CPU
-docker build -t zhangkin/lio_sam_6axis .
+- LIO_SAM 6轴IMU适配香港城市数据集UrbanNav，并给出添加GPS约束和不加GPS约束的结果
 
-docker run -it --net=host --gpus all --name lio_sam_6axis zhangkin/lio_sam_6axis /bin/zsh
+#### 2. [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY)
 
-# OR -v to link the folder from your computer into container (your_computer_loc:container_loc)
-docker run -it --net=host --gpus all --name lio_sam_6axis -v /home/kin/bag_data:/home/xchu/data/ramlab_dataset zhangkin/lio_sam_6axis /bin/zsh
-
-# in the container
-catkin build
-source devel/setup.zsh
-
-# with dataset download and linked ==> please see more usage in previous section
-roslaunch lio_sam_6axis ouster128_indoors.launch
-```
-
-对于在内地的同学，可以换源`dockerhub`后，直接拉取：
-
-```bash
-docker pull zhangkin/lio_sam_6axis
-```
-
-Example screen shot:
-
-![](README/docker_example.png)
+- integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. 
 
 
 
