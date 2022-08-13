@@ -193,8 +193,6 @@ The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/
 
 - integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. 
 
-
-
 # TO DO
 
 1. colored point cloud  map
@@ -202,6 +200,10 @@ The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/
 3. Using GNSS Raw Observations
 
 As soon as I have time I will continue to update this repo and release more data.
+
+# Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=JokerJohn/LIO_SAM_6AXIS&type=Date)](https://star-history.com/#JokerJohn/LIO_SAM_6AXIS&Date)
 
 # Acknowledgments
 
