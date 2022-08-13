@@ -2,10 +2,10 @@
 
 # LIO_SAM_6AXIS
 
-This repo may help to adapt LIO_SAM for your own sensors! It has some changes comparing with the origin system.
+This repo may help to adapt LIO_SAM for your own sensors! 
 
 - support a 6-axis IMU, since the orientation information of IMU is not used in state estimation module.
-- support normal GNSS, we do not need to adapt for the robot_localization node.
+- support low-cost GNSS, we do not need to adapt for the robot_localization node.
 - support the gps constraint visualization module to help debugging the normal GNSS.(the following picture)
 
 <img src="README/image-20220531015953876.png" alt="image-20220531015953876" style="zoom: 50%;" />
@@ -18,14 +18,6 @@ This repo may help to adapt LIO_SAM for your own sensors! It has some changes co
 
 **new dataset released!** 
 
-- garden_day: [one_drive](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE)
-
-when you download this compressed data, remember to execute the following command
-
-```bash
-rosbag decompress 20220216_garden_day_ref_compressed.bag
-```
-
 # Introduction
 
 LIO_SAM is only designed for 9-axis IMU, for the following reasons.
@@ -33,7 +25,7 @@ LIO_SAM is only designed for 9-axis IMU, for the following reasons.
 - the initialization module need absolute orientation to initialize the LIO system.
 - the back-end GNSS-based optimization relies on the robot_localization node, and also requires a 9-axis IMU.
 
-Therefore, only minor changes to the original code are required.  which can directly use GPS points of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and extrinsics between lidars and IMUs, such as Hesai.
+Therefore, only minor changes to the original code are required.  which can directly use GPS points of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and extrinsics between lidars and IMUs, such as Pandar.
 
 we add the gps constraint visualization module to help debugging the normal gps(red lines represents for gps constraint).
 
@@ -51,7 +43,7 @@ my previous and current system:
 
 `Ubuntu20.04/PCL1.10/GTSAM4.1`
 
-## Simple Video Tutorial
+## Video Tutorial
 
 Whether you are running the sample data provided by me or adapting your own sensor, you can watch the detailed teaching video below.
 
@@ -84,7 +76,7 @@ roslaunch lio_sam_6axis ouster128_indoors.launch
 docker pull zhangkin/lio_sam_6axis
 ```
 
-Example screen shot:
+follow these steps:
 
 ![](README/docker_example.png)
 
@@ -92,8 +84,7 @@ Example screen shot:
 
 - hkust_20201105full_correct2
 
-when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! 
-[Gps initialization video](https://www.bilibili.com/video/BV1dY411M7hr/)
+when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! see the video.[Gps initialization video](https://www.bilibili.com/video/BV1dY411M7hr/)
 
 ```
 roslaunch lio_sam_6axis run.launch
@@ -165,23 +156,25 @@ rosservice call /lio_sam_6axis/save_map
 
 #### Velodyne 16 dataset
 
-- hkust_20201105full_correct2
+- hkust_20201105full_correct2，[dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4).
 
-​		[dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4).
-
-See [this doc](doc/adaption.md).
+​		See [this doc](doc/adaption.md).
 
 #### Pandar dataset
 
-Download the [HILTI DATASET](https://hilti-challenge.com/dataset-2022.html).
+- [HILTI DATASET](https://hilti-challenge.com/dataset-2022.html).
 
 The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly!
 
 #### Ouster dataset
 
-- garden_day 
+- [garden_day](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE)
 
-  [one_drive](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE)
+  when you download this compressed data, remember to execute the following command
+
+  ```bash
+  rosbag decompress 20220216_garden_day_ref_compressed.bag
+  ```
 
 # Related Package
 
