@@ -3,8 +3,8 @@ lio_sam_6axis:
   #  velodyne16 and stim300(6 axis)
 
   # Topics
-  pointCloudTopic: "velodyne_points"               # Point cloud data
-  imuTopic: "imu/data"                         # IMU data
+  pointCloudTopic: "/os_cloud_node/points"               # Point cloud data
+  imuTopic: "/os_cloud_node/imu"                         # IMU data
   odomTopic: "odometry/imu"                   # IMU pre-preintegration odometry, same frequency as IMU
   gpsTopic: "gps_odom"                   # GPS odometry topic from navsat, see module_navsat.launch file
 
@@ -15,7 +15,7 @@ lio_sam_6axis:
   mapFrame: "map"
 
   # GPS Settings
-  useGPS: true
+  useGPS: false
   gpsFrequence: 10                            # set proper gps frequence to align gps and lidar timestamp
   useImuHeadingInitialization: false         # if using GPS data, set to "false"
   useGpsElevation: true                      # if GPS elevation is bad, set to "false"

@@ -1,6 +1,6 @@
 <launch>
     <arg name="project" default="lio_sam_6axis"/>
-    <arg name="bag_path" default="/home/xchu/data/ramlab_dataset/hkust_20201105full.bag"/>
+    <arg name="bag_path" default="/root/2022-08-31-16-20-22.bag"/>
     <arg name="sequence" default="hkust_CAMPUS"/>
 
     <!-- Parameters -->
@@ -23,6 +23,6 @@
     <node pkg="rviz" type="rviz" name="$(arg project)_rviz"
           args="-d $(find lio_sam_6axis)/launch/include/config/vlp.rviz"/>
 
-    <node pkg="rosbag" type="play" name="bag_play" args="$(arg bag_path) --clock -d 5"/>
+    <node pkg="rosbag" type="play" name="bag_play" args="$(arg bag_path) --clock -d 5 -s 10"/>
 
 </launch>
