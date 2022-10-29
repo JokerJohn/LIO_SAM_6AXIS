@@ -18,7 +18,7 @@
 
     <!--show satellite-->
     <node pkg="rostopic" type="rostopic" name="fake_gps_fix"
-          args="pub /fix sensor_msgs/NavSatFix --latch --file=$(find rviz_satellite)/launch/demo.gps" output="screen"/>
+          args="pub gps/fix sensor_msgs/NavSatFix --latch --file=$(find rviz_satellite)/launch/demo.gps" output="screen"/>
 
     <!--- Run Navsat -->
     <node pkg="lio_sam_6axis" type="lio_sam_6axis_gpsOdometry" name="lio_sam_6axis_gpsOdometry" output="log"/>

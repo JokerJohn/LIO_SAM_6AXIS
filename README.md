@@ -1,4 +1,6 @@
-<img align="center" src="README/test-16548681575981.gif" style="zoom: 200%;" />
+
+
+![hkust](README/hkust.gif)
 
 # LIO_SAM_6AXIS
 
@@ -7,7 +9,6 @@ This repo may help to adapt LIO_SAM for your own sensors!
 - support a 6-axis IMU, since the orientation information of IMU is not used in state estimation module.
 - support low-cost GNSS, we do not need to adapt for the robot_localization node.
 - support the gps constraint visualization module to help debugging the normal GNSS.(the following picture)
-
 <img src="README/image-20220531015953876.png" alt="image-20220531015953876" style="zoom: 50%;" />
 
 <img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
@@ -15,24 +16,22 @@ This repo may help to adapt LIO_SAM for your own sensors!
 ## Latest News(2022-10-26)
 
 - fix some bugs of GNSS odometry, remove some useless codes in lio intialization module
+
 - add tf messages in *__result.bag so that we can use the result.bag to generate the gif demo above!
 
-![image-20220726183035458](README/image-20220726183035458.png)
+- add [rviz_satellate](https://github.com/nobleo/rviz_satellite) plugs which can show your point cloud  on google map. 
 
-**new dataset released!** 
+![image-20221030021056179](README/image-20221030021056179.png)
 
 # Introduction
 
 LIO_SAM is only designed for 9-axis IMU, for the following reasons.
 
-- the initialization module need absolute orientation to initialize the LIO system.
 - the back-end GNSS-based optimization relies on the robot_localization node, and also requires a 9-axis IMU.
 
 Therefore, only minor changes to the original code are required.  which can directly use GPS points of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and extrinsics between lidars and IMUs, such as Pandar.
 
 we add the gps constraint visualization module to help debugging the normal gps(red lines represents for gps constraint).
-
-<img src="README/image-20220421113413972.png" alt="GPS constrain visualization" style="zoom:50%;" />
 
 # Usage
 
@@ -40,17 +39,10 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 the same as LIO_SAM.
 
-my previous and current system: 
-
-`Ubuntu18.04 /PCL1.8/GTSAM4.0.2`
-
-`Ubuntu20.04/PCL1.10/GTSAM4.1`
-
 ## Video Tutorial
 
-Whether you are running the sample data provided by me or adapting your own sensor, you can watch the detailed teaching video below.
-
-**Video Tutorial**：[Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)、[Youtube](https://youtu.be/TgKSeNLkExc)
+- [Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)
+- [Youtube](https://youtu.be/TgKSeNLkExc)
 
 ## Docker
 
@@ -85,9 +77,7 @@ follow these steps:
 
 ## Single Sequence
 
-- hkust_20201105full_correct2
-
-when you set `useGPS` as true,  remember to test the params `gpsCovThreshold`. Just **make sure your vehicles are in a good position at the first beginning of the sequence where the status of GNSS is stable encough**, or you can not initialize your system successfully! see the video.[Gps initialization video](https://www.bilibili.com/video/BV1dY411M7hr/)
+- hkust_20201105full
 
 ```
 roslaunch lio_sam_6axis run.launch
@@ -157,27 +147,11 @@ rosservice call /lio_sam_6axis/save_map
 
 # Dataset and Adaption
 
-#### Velodyne 16 dataset
-
-- hkust_20201105full_correct2，[dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view)  or [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4).
-
-​		See [this doc](doc/adaption.md).
-
-#### Pandar dataset
-
-- [HILTI DATASET](https://hilti-challenge.com/dataset-2022.html).
-
-The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly!
-
-#### Ouster dataset
-
-- [garden_day](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE)
-
-  when you download this compressed data, remember to execute the following command
-
-  ```bash
-  rosbag decompress 20220216_garden_day_ref_compressed.bag
-  ```
+| Dataset            | Description                                                  | Sensor                                     | Link                                                         | GT                                                           | Comment                                                      |
+| ------------------ | ------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| hkust_20201105full | ![image-20221030035547512](README/image-20221030035547512.png) | vlp_16 + stim300+left camera+ normal gps   | [Dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view), [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4). | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/ESoJj5STkVlFrOZruvEKg0gBasZimTC2HSQ2kqdIOWHiGg?e=TMtrz6) | about 10km outdoor, See [this doc](doc/adaption.md).         |
+| HILTI DATASET      | ![img](README/construction_sheldonian.jpg)                   | hesai32+ low-cost imu+5 fisher eye  camera | [Download](https://hilti-challenge.com/dataset-2022.html)    |                                                              | The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly! |
+| garden_day         | ![Garden](README/garden.png)                                 | ouster128 + stim300+ stere camera          | [Download](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/Ea-e6VPaa59Br-26KAQ5IssBwjYcoJSNOJs0qeKNZVeg1w?e=ZjrHx4) | indoors. when you download this compressed data, remember to execute the following command, `rosbag decompress 20220216_garden_day_ref_compressed.bag` |
 
 # Related Package
 

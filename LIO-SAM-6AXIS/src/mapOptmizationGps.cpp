@@ -169,8 +169,9 @@ class mapOptimization : public ParamServer {
   std::mutex mtxLoopInfo;
   std::mutex mtxGpsInfo;
 
-  Eigen::Affine3f transGPS;
+  // Eigen::Affine3f transGPS;
   Eigen::Vector3d transLLA;
+  Eigen::Vector3d originLLA;
   // bool gpsAvialble = false;
   bool systemInitialized = false;
   bool gpsTransfromInit = false;
@@ -191,9 +192,14 @@ class mapOptimization : public ParamServer {
   vector<gtsam::noiseModel::Diagonal::shared_ptr> loopNoiseQueue;
   deque<std_msgs::Float64MultiArray> loopInfoVec;
   nav_msgs::Path globalPath;
+  //nav_msgs::Path globalGpsPath;
   Eigen::Affine3f transPointAssociateToMap;
   Eigen::Affine3f incrementalOdometryAffineFront;
   Eigen::Affine3f incrementalOdometryAffineBack;
+
+//  GpsTools gpsTools;
+//  Eigen::Vector3d optimized_lla;
+//  std::vector<Eigen::Vector3d> lla_vector;
 
   //  string savePCDDirectory;
   //  string scene_name;
@@ -504,7 +510,7 @@ class mapOptimization : public ParamServer {
                                   cloudKeyPoses6D->at(0).y,
                                   cloudKeyPoses6D->at(0).z);
       GpsTools gpsTools;
-      gpsTools.lla_origin_ = transLLA;
+      gpsTools.lla_origin_ = originLLA;
 
       // we save optimized origin gps point, maybe the altitude value need to be
       // fixes
@@ -513,7 +519,7 @@ class mapOptimization : public ParamServer {
       optimized_lla = gpsTools.ECEF2LLA(ecef_point);
 
       std::cout << std::setprecision(9)
-                << "origin LLA: " << transLLA.transpose() << std::endl;
+                << "origin LLA: " << originLLA.transpose() << std::endl;
       std::cout << std::setprecision(9)
                 << "optimized LLA: " << optimized_lla.transpose() << std::endl;
       dataSaverPtr->saveOriginGPS(optimized_lla);
@@ -1138,11 +1144,17 @@ class mapOptimization : public ParamServer {
           //          transLLA = Eigen::Vector3d(alignedGPS.pose.covariance[1],
           //                                     alignedGPS.pose.covariance[2],
           //                                     alignedGPS.pose.covariance[3]);
+          transLLA.setIdentity();
+          transLLA = Eigen::Vector3d(alignedGPS.pose.covariance[1],
+                                     alignedGPS.pose.covariance[2],
+                                     alignedGPS.pose.covariance[3]);
+          originLLA.setIdentity();
+          originLLA = Eigen::Vector3d(alignedGPS.pose.pose.position.x,
+                                      alignedGPS.pose.pose.position.y,
+                                      alignedGPS.pose.pose.position.z);
+         // gpsTools.lla_origin_ = originLLA;
+
           if (debugGps) {
-            transLLA.setIdentity();
-            transLLA = Eigen::Vector3d(alignedGPS.pose.covariance[1],
-                                       alignedGPS.pose.covariance[2],
-                                       alignedGPS.pose.covariance[3]);
             // std::cout << "GPS: " << gps_transform.matrix() << std::endl;
             std::cout << "initial gps yaw: " << yaw << std::endl;
             std::cout << "GPS Position: " << alignedGPS.pose.pose.position.x
@@ -2100,6 +2112,7 @@ class mapOptimization : public ParamServer {
       laserCloudMapContainer.clear();
       // clear path
       globalPath.poses.clear();
+
       // update key poses
       int numPoses = isamCurrentEstimate.size();
       for (int i = 0; i < numPoses; ++i) {

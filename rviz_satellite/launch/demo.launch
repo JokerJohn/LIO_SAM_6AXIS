@@ -1,0 +1,7 @@
+<launch>
+    <!-- Send a static GPS fix to every new subscriber. Edit latitude and longitude in launch/demo.gps to use your own position. -->
+    <node pkg="rostopic" type="rostopic" name="fake_gps_fix" args="pub /gps/fix sensor_msgs/NavSatFix --latch --file=$(find rviz_satellite)/launch/demo.gps" output="screen"/>
+
+    <!-- Start rviz with a pre-configured AerialMap instance. It will use the fake GPS fix from above. -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rviz_satellite)/launch/demo.rviz"/>
+</launch>

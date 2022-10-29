@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package>
+  <name>rviz_satellite</name>
+  <version>1.1.0</version>
+  <description>Display satellite map tiles in RViz</description>
+  <author>Gareth Cross</author>
+  <maintainer email="gcross.code@icloud.com">gcross</maintainer>
+  <license>Apache 2</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rviz</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>rviz</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+
+  <export>
+      <rviz plugin="${prefix}/plugin_description.xml"/>
+  </export>
+</package>

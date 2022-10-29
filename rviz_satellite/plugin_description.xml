@@ -1,0 +1,9 @@
+<library path="lib/librviz_satellite">
+  <class name="rviz_plugins/AerialMapDisplay"
+         type="rviz::AerialMapDisplay"
+         base_class_type="rviz::Display">
+    <description>
+      Display of satellite image map.
+    </description>
+  </class>
+</library>
