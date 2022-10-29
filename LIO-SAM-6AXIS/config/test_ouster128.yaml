@@ -31,7 +31,7 @@ lio_sam_6axis:
   savePCD: false                              # https://github.com/TixiaoShan/LIO-SAM/issues/3
   savePCDDirectory: "/Downloads/LOAM/"        # actually we do not use the floder to save maps
 
-# depends on your own lidar!!!!
+  # depends on your own lidar!!!!
   sensor: ouster                            # lidar sensor type, 'velodyne' or 'ouster' or 'livox' or 'hesai'
   N_SCAN: 128                                  # number of lidar channel (i.e., Velodyne/Ouster: 16, 32, 64, 128, Livox Horizon: 6)
   Horizon_SCAN: 2048                          # lidar horizontal resolution (Velodyne:1800, Ouster:512,1024,2048, Livox Horizon: 4000)
@@ -48,7 +48,7 @@ lio_sam_6axis:
   imuGravity: 9.80511
   imuRPYWeight: 0.01
 
-  #  stim300
+  # stim300  lidar->imu
   imu_type: 0   # 0: 6axis, 1:9 axis
   extrinsicTrans: [ -0.047781, 0.007303, -0.026583 ]
   extrinsicRot: [ 0.9999872, -0.0010636, -0.0049547,

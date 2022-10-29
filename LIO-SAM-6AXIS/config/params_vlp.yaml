@@ -6,7 +6,7 @@ lio_sam_6axis:
   pointCloudTopic: "velodyne_points"               # Point cloud data
   imuTopic: "imu/data"                         # IMU data
   odomTopic: "odometry/imu"                   # IMU pre-preintegration odometry, same frequency as IMU
-  gpsTopic: "gps_odom"                   # GPS odometry topic from navsat, see module_navsat.launch file
+  gpsTopic: "fix"                   # GPS odometry topic from navsat, see module_navsat.launch file
 
   # Frames
   lidarFrame: "base_link"
@@ -21,11 +21,12 @@ lio_sam_6axis:
   useGpsElevation: true                      # if GPS elevation is bad, set to "false"
   gpsCovThreshold: 8                        # m^2, threshold for using GPS data
   poseCovThreshold: 25.0                      # m^2, threshold for using GPS data
+  gpsDistance: 0.5                           # the distance between two gps point used for optimization
 
   # debug setting
   debugLidarTimestamp: false
   debugImu: false
-  debugGps: false
+  debugGps: true
 
   # Export settings
   savePCD: false                              # https://github.com/TixiaoShan/LIO-SAM/issues/3
@@ -85,8 +86,8 @@ lio_sam_6axis:
   loopClosureEnableFlag: true
   loopClosureFrequency: 1.0                     # Hz, regulate loop closure constraint add frequency
   surroundingKeyframeSize: 30                   # submap size (when loop closure enabled)
-  historyKeyframeSearchRadius: 25.0             # meters, key frame that is within n meters from current pose will be considerd for loop closure
-  historyKeyframeSearchTimeDiff: 25.0           # seconds, key frame that is n seconds older will be considered for loop closure
+  historyKeyframeSearchRadius: 30.0             # meters, key frame that is within n meters from current pose will be considerd for loop closure
+  historyKeyframeSearchTimeDiff: 40.0           # seconds, key frame that is n seconds older will be considered for loop closure
   historyKeyframeSearchNum: 25                  # number of hostory key frames will be fused into a submap for loop closure
   historyKeyframeFitnessScore: 0.9              # icp threshold, the smaller the better alignment
 

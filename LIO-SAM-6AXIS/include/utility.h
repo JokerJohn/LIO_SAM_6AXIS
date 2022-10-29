@@ -92,6 +92,7 @@ public:
     bool useGpsElevation;
     float gpsCovThreshold;
     float poseCovThreshold;
+    float GPSDISTANCE;
 
     // debug setting
     bool debugLidarTimestamp;
@@ -188,7 +189,7 @@ public:
         nh.param<std::string>("lio_sam_6axis/pointCloudTopic", pointCloudTopic, "points_raw");
         nh.param<std::string>("lio_sam_6axis/imuTopic", imuTopic, "imu_correct");
         nh.param<std::string>("lio_sam_6axis/odomTopic", odomTopic, "odometry/imu");
-        nh.param<std::string>("lio_sam_6axis/gpsTopic", gpsTopic, "odometry/gps");
+        nh.param<std::string>("lio_sam_6axis/gpsTopic", gpsTopic, "fix");
 
         nh.param<std::string>("lio_sam_6axis/lidarFrame", lidarFrame, "base_link");
         nh.param<std::string>("lio_sam_6axis/baselinkFrame", baselinkFrame, "base_link");
@@ -202,6 +203,7 @@ public:
         nh.param<bool>("lio_sam_6axis/useGpsElevation", useGpsElevation, false);
         nh.param<float>("lio_sam_6axis/gpsCovThreshold", gpsCovThreshold, 2.0);
         nh.param<float>("lio_sam_6axis/poseCovThreshold", poseCovThreshold, 25.0);
+        nh.param<float>("lio_sam_6axis/gpsDistance", GPSDISTANCE, 0.5);
 
         nh.param<bool>("lio_sam_6axis/debugLidarTimestamp", debugLidarTimestamp, false);
         nh.param<bool>("lio_sam_6axis/debugImu", debugImu, false);

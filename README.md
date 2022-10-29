@@ -12,7 +12,10 @@ This repo may help to adapt LIO_SAM for your own sensors!
 
 <img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
 
-## Latest News(2022-07-26)
+## Latest News(2022-10-26)
+
+- fix some bugs of GNSS odometry, remove some useless codes in lio intialization module
+- add tf messages in *__result.bag
 
 ![image-20220726183035458](README/image-20220726183035458.png)
 

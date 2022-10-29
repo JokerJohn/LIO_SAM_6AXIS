@@ -4,8 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
         - /Mapping1/GpsPath1
       Splitter Ratio: 0.5600000023841858
     Tree Height: 829
@@ -537,7 +535,7 @@ Visualization Manager:
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
       Line Style: Billboards
-      Line Width: 0.10000000149011612
+      Line Width: 0.20000000298023224
       Name: gps_Path
       Offset:
         X: 0
@@ -549,11 +547,11 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /fused_gps_path
+      Topic: /gps_path
       Unreliable: false
       Value: true
     - Class: rviz/Image
-      Enabled: true
+      Enabled: false
       Image Topic: /stereo/frame_left/image_raw
       Max Value: 1
       Median window: 5
@@ -563,18 +561,17 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /lio_sam_6axis/mapping/loop_closure_constraints
       Name: Loop constraint
       Namespaces:
-        loop_edges: true
-        loop_nodes: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Image
-      Enabled: false
+      Enabled: true
       Image Topic: /stereo/left/image_color
       Max Value: 1
       Median window: 5
@@ -584,14 +581,6 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: compressed
       Unreliable: false
-      Value: false
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /loop_detector/marker
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
       Value: true
     - Class: rviz/Image
       Enabled: false
@@ -619,12 +608,25 @@ Visualization Manager:
       Value: false
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /loop_detector/marker
+      Marker Topic: /lio_sam_6axis/mapping/gps_constraints
       Name: MarkerArray
       Namespaces:
         {}
       Queue Size: 100
       Value: true
+    - Alpha: 1
+      Blocks: 8
+      Class: rviz_plugins/AerialMapDisplay
+      Draw Behind: false
+      Dynamically reload: true
+      Enabled: false
+      Frame Convention: XYZ -> ENU
+      Name: AerialMapDisplay
+      Object URI: https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoieGh1YmQiLCJhIjoiY2w4YWo4OXJ6MGJuMzN3bHl4YXh3OW12YyJ9.Y_5wSWax9RSJ8zgGIWQPxA
+      Robot frame: map
+      Topic: /fix
+      Value: false
+      Zoom: 19
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
@@ -641,7 +643,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 60.72026824951172
+      Distance: 354.5906677246094
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -649,9 +651,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -12.777547836303711
-        Y: 1.4851460456848145
-        Z: 2.7424449920654297
+        X: -125.38368225097656
+        Y: -160.10467529296875
+        Z: -6.5365800857543945
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -659,7 +661,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: lidar_link
-      Yaw: 4.34039831161499
+      Yaw: 2.020390748977661
     Saved: ~
 Window Geometry:
   Displays:
@@ -677,5 +679,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 3840
-  X: 3456
-  Y: 1676
+  X: 2160
+  Y: 625
