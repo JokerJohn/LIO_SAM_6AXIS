@@ -21,7 +21,7 @@ This repo may help to adapt LIO_SAM for your own sensors!
 
 - add [rviz_satellate](https://github.com/nobleo/rviz_satellite) plugs which can show your point cloud  on google map. 
 
-![image-20221030021056179](README/image-20221030021056179.png)
+![image-20221030051152185](README/image-20221030051152185.png)
 
 # Introduction
 
