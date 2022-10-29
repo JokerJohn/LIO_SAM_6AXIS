@@ -15,7 +15,7 @@ This repo may help to adapt LIO_SAM for your own sensors!
 ## Latest News(2022-10-26)
 
 - fix some bugs of GNSS odometry, remove some useless codes in lio intialization module
-- add tf messages in *__result.bag
+- add tf messages in *__result.bag so that we can use the result.bag to generate the gif demo above!
 
 ![image-20220726183035458](README/image-20220726183035458.png)
 
