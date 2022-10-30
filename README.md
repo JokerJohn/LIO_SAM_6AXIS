@@ -13,13 +13,15 @@ This repo may help to adapt LIO_SAM for your own sensors!
 
 <img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
 
-## Latest News(2022-10-26)
+## Latest News(2022-10-27)
 
 - fix some bugs of GNSS odometry, remove some useless codes in lio intialization module
 
 - add tf messages in *__result.bag so that we can use the result.bag to generate the gif demo above!
 
 - add [rviz_satellate](https://github.com/nobleo/rviz_satellite) plugs which can show your point cloud  on google map. 
+
+- update orgin LLA of map origin point automatically during the optimization.
 
 ![image-20221030051152185](README/image-20221030051152185.png)
 
@@ -181,9 +183,6 @@ As soon as I have time I will continue to update this repo and release more data
 
 # Acknowledgments
 
-Thanks to  [Guoqing Zhang](https://github.com/MyEvolution), [Jianhao Jiao](https://github.com/gogojjh).
+Thanks to  [Guoqing Zhang](https://github.com/MyEvolution), [Jianhao Jiao](https://github.com/gogojjh)，[Qingwen Zhang](https://github.com/Kin-Zhang).
 
 Thanks to [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM).
-
-
-

@@ -66,6 +66,7 @@ class mapOptimization : public ParamServer {
   ros::Publisher pubLaserOdometryIncremental;
   ros::Publisher pubKeyPoses;
   ros::Publisher pubPath;
+  ros::Publisher pubGPSOrigin;
 
   ros::Publisher pubHistoryKeyFrames;
   ros::Publisher pubIcpKeyFrames;
@@ -175,6 +176,7 @@ class mapOptimization : public ParamServer {
   // bool gpsAvialble = false;
   bool systemInitialized = false;
   bool gpsTransfromInit = false;
+  GpsTools gpsTools;
 
   bool isDegenerate = false;
   cv::Mat matP;
@@ -192,14 +194,14 @@ class mapOptimization : public ParamServer {
   vector<gtsam::noiseModel::Diagonal::shared_ptr> loopNoiseQueue;
   deque<std_msgs::Float64MultiArray> loopInfoVec;
   nav_msgs::Path globalPath;
-  //nav_msgs::Path globalGpsPath;
+  // nav_msgs::Path globalGpsPath;
   Eigen::Affine3f transPointAssociateToMap;
   Eigen::Affine3f incrementalOdometryAffineFront;
   Eigen::Affine3f incrementalOdometryAffineBack;
 
-//  GpsTools gpsTools;
-//  Eigen::Vector3d optimized_lla;
-//  std::vector<Eigen::Vector3d> lla_vector;
+  //  GpsTools gpsTools;
+  //  Eigen::Vector3d optimized_lla;
+  //  std::vector<Eigen::Vector3d> lla_vector;
 
   //  string savePCDDirectory;
   //  string scene_name;
@@ -209,6 +211,9 @@ class mapOptimization : public ParamServer {
     parameters.relinearizeThreshold = 0.1;
     parameters.relinearizeSkip = 1;
     isam = new ISAM2(parameters);
+
+    if (useGPS)
+      pubGPSOrigin = nh.advertise<sensor_msgs::NavSatFix>("gps/fix", 1);
 
     pubKeyPoses = nh.advertise<sensor_msgs::PointCloud2>(
         "lio_sam_6axis/mapping/trajectory", 1);
@@ -502,14 +507,14 @@ class mapOptimization : public ParamServer {
       return false;
     }
 
-    GpsTools gpsTools;
+    //GpsTools gpsTools;
     // when you shut down the terminal , we will save odom  and map
     Eigen::Vector3d optimized_lla;
     if (useGPS) {
       Eigen::Vector3d first_point(cloudKeyPoses6D->at(0).x,
                                   cloudKeyPoses6D->at(0).y,
                                   cloudKeyPoses6D->at(0).z);
-      GpsTools gpsTools;
+      //GpsTools gpsTools;
       gpsTools.lla_origin_ = originLLA;
 
       // we save optimized origin gps point, maybe the altitude value need to be
@@ -1149,10 +1154,10 @@ class mapOptimization : public ParamServer {
                                      alignedGPS.pose.covariance[2],
                                      alignedGPS.pose.covariance[3]);
           originLLA.setIdentity();
-          originLLA = Eigen::Vector3d(alignedGPS.pose.pose.position.x,
-                                      alignedGPS.pose.pose.position.y,
-                                      alignedGPS.pose.pose.position.z);
-         // gpsTools.lla_origin_ = originLLA;
+          originLLA = Eigen::Vector3d(alignedGPS.pose.covariance[1],
+                                      alignedGPS.pose.covariance[2],
+                                      alignedGPS.pose.covariance[3]);
+          // gpsTools.lla_origin_ = originLLA;
 
           if (debugGps) {
             // std::cout << "GPS: " << gps_transform.matrix() << std::endl;
@@ -2134,6 +2139,36 @@ class mapOptimization : public ParamServer {
             isamCurrentEstimate.at<Pose3>(i).rotation().yaw();
 
         updatePath(cloudKeyPoses6D->points[i]);
+      }
+
+      // pose changed we publish a message to fix frame
+      if (useGPS && gpsTransfromInit && gpsIndexContainer.size() / 200 == 0) {
+        Eigen::Vector3d first_point(cloudKeyPoses6D->at(0).x,
+                                    cloudKeyPoses6D->at(0).y,
+                                    cloudKeyPoses6D->at(0).z);
+
+        gpsTools.lla_origin_ = originLLA;
+
+        // we save optimized origin gps point, maybe the altitude value need to
+        // be fixes
+        Eigen::Vector3d ecef_point;
+        ecef_point = gpsTools.ENU2ECEF(first_point);
+        Eigen::Vector3d origin_lla = gpsTools.ECEF2LLA(ecef_point);
+
+        std::cout << std::setprecision(9)
+                  << "origin LLA: " << originLLA.transpose() << std::endl;
+        std::cout << std::setprecision(9)
+                  << "update LLA: " << origin_lla.transpose() << std::endl;
+
+        sensor_msgs::NavSatFix fix_msgs;
+        fix_msgs.header.stamp = ros::Time().fromSec(timeLaserInfoCur);
+        fix_msgs.header.frame_id = "gps";
+        fix_msgs.latitude = origin_lla[0];
+        fix_msgs.longitude = origin_lla[1];
+        fix_msgs.altitude = origin_lla[2];
+        pubGPSOrigin.publish(fix_msgs);
+
+        ROS_WARN("UPDATE ORGIN LLA");
       }
 
       aLoopIsClosed = false;

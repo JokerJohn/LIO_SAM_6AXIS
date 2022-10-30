@@ -1,14 +1,11 @@
 <launch>
 
     <arg name="project" default="lio_sam_6axis"/>
-<!--    <arg name="bag_path" default="/home/xchu/data/ramlab_dataset/apollo_cyt_2_2022-06-19-14-32-17.bag"/>-->
-        <arg name="bag_path" default="/home/xchu/data/ramlab_dataset/20220226_campus_road_day_ref.bag"/>
-<!--    <arg name="sequence" default="apollo_cyt_2_2022-06-19-14-32-17"/>-->
+    <arg name="bag_path"
+         default="/media/xchu/e81eaf80-d92c-413a-a503-1c9b35b19963/home/xchu/data/hkust/outdoors/20220226_campus_road_day_ref.bag"/>
     <arg name="sequence" default="20220226_campus_road_day_ref"/>
 
-
     <!-- Parameters -->
-    <!--    <rosparam file="$(find lio_sam_6axis)/config/params_ouster.yaml" command="load"/>-->
     <rosparam file="$(find lio_sam_6axis)/config/outdoors_ouster128.yaml" command="load"/>
 
     <!--- LOAM -->
@@ -22,13 +19,17 @@
     <!--- Run Navsat -->
     <node pkg="lio_sam_6axis" type="lio_sam_6axis_gpsOdometry" name="lio_sam_6axis_gpsOdometry"/>
 
-    <!--    loop detector-->
-    <include file="$(find imaging_lidar_place_recognition)/launch/ouster128_outdoors.launch"/>
+    <node pkg="rostopic" type="rostopic" name="fake_gps_fix"
+          args="pub gps/fix sensor_msgs/NavSatFix '{ header: auto, latitude: 22.3348464406391, longitude: 114.263170356467, altitude: 136.95883269608}'"
+          output="screen"/>
+
+    <!--    loop detector by intensity image-->
+    <!--    <include file="$(find imaging_lidar_place_recognition)/launch/ouster128_outdoors.launch"/>-->
 
     <!--- Run Rviz-->
     <node pkg="rviz" type="rviz" name="$(arg project)_rviz"
           args="-d $(find lio_sam_6axis)/launch/include/config/vlp.rviz"/>
 
-    <node pkg="rosbag" type="play" name="bag_play" args="$(arg bag_path) --clock -d 5"/>
+    <node pkg="rosbag" type="play" name="bag_play" args="$(arg bag_path) --clock -d 5 -r 0.8"/>
 
 </launch>
