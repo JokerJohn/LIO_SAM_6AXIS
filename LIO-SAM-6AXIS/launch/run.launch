@@ -17,9 +17,9 @@
     <include file="$(find lio_sam_6axis)/launch/include/module_robot_state_publisher.launch"/>
 
     <!--show satellite-->
-    <!--set your orgin gps lla -->
+    <!--set your orgin gps lla  22.3387279108228 114.263622199692 87.7310562180355 -->
     <node pkg="rostopic" type="rostopic" name="fake_gps_fix"
-          args="pub gps/fix sensor_msgs/NavSatFix '{ header: auto, latitude: 22.3387116703647, longitude: 114.263642735396, altitude: 107.128592180088}'"
+          args="pub gps/fix sensor_msgs/NavSatFix '{ header: auto, latitude: 22.3387279108228, longitude: 114.263622199692, altitude:  87.7310562}'"
           output="screen"/>
 
     <!--- Run Navsat -->
