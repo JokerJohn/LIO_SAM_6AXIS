@@ -37,7 +37,7 @@ we add the gps constraint visualization module to help debugging the normal gps(
 
 ## Dependences
 
-the same as LIO_SAM.
+The same as LIO_SAM.
 
 ## Video Tutorial
 
@@ -149,7 +149,7 @@ rosservice call /lio_sam_6axis/save_map
 
 | Dataset            | Description                                                  | Sensor                                     | Link                                                         | GT                                                           | Comment                                                      |
 | ------------------ | ------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| hkust_20201105full | ![image-20221030035547512](README/image-20221030035547512.png) | vlp_16 + stim300+left camera+ normal gps   | [Dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view), [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4). | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/ESoJj5STkVlFrOZruvEKg0gBasZimTC2HSQ2kqdIOWHiGg?e=TMtrz6) | about 10km outdoor, See [this doc](doc/adaption.md).         |
+| hkust_20201105full | ![image-20221030035547512](README/image-20221030035547512.png) | vlp16 + stim300+left camera+ normal gps    | [Dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view), [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4). | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/ESoJj5STkVlFrOZruvEKg0gBasZimTC2HSQ2kqdIOWHiGg?e=TMtrz6) | about 10km outdoor, See [this doc](doc/adaption.md).         |
 | HILTI DATASET      | ![img](README/construction_sheldonian.jpg)                   | hesai32+ low-cost imu+5 fisher eye  camera | [Download](https://hilti-challenge.com/dataset-2022.html)    |                                                              | The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly! |
 | garden_day         | ![Garden](README/garden.png)                                 | ouster128 + stim300+ stere camera          | [Download](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/Ea-e6VPaa59Br-26KAQ5IssBwjYcoJSNOJs0qeKNZVeg1w?e=ZjrHx4) | indoors. when you download this compressed data, remember to execute the following command, `rosbag decompress 20220216_garden_day_ref_compressed.bag` |
 
@@ -163,11 +163,15 @@ rosservice call /lio_sam_6axis/save_map
 
 - integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. 
 
+# Bugs
+
+1. Call the save map service only when your system optimization is complete, otherwise there will be problems.
+
 # TO DO
 
 1. colored point cloud  map
 2. dynamic object removal
-3. Using GNSS Raw Observations
+3. GNSS Raw Observations
 
 As soon as I have time I will continue to update this repo and release more data.
 

@@ -45,9 +45,9 @@ limitations under the License. */
 #define FRAME_CONVENTION_XYZ_NWU (2)  //  X -> North, Y -> West
 
 // Max number of adjacent blocks to support.
-static constexpr int kMaxBlocks = 20;
+static constexpr int kMaxBlocks = 30;
 // Max zoom level to support.
-static constexpr int kMaxZoom = 22;
+static constexpr int kMaxZoom = 30;
 
 // TODO(gareth): If higher zooms are ever supported, change calculations from
 // int to long wherever applicable.
