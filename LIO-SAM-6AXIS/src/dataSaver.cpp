@@ -350,8 +350,6 @@ void DataSaver::savePointCloudMap(
   pcl::PointCloud<PointT>::Ptr globalmap(
       new pcl::PointCloud<PointT>());  // giseop
   for (int i = 0; i < odom_size; ++i) {
-    laserCloudRaw->clear();
-    laserCloudTrans->clear();
     nav_msgs::Odometry odom = allOdometryVec.at(i);
     laserCloudRaw = allResVec.at(i);
 

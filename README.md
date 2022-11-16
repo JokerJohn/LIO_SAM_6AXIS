@@ -4,24 +4,21 @@
 
 # LIO_SAM_6AXIS
 
-This repo may help to adapt LIO_SAM for your own sensors! 
+This repo may help to adapt [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM) for your own sensors! 
 
 - support a 6-axis IMU, since the orientation information of IMU is not used in state estimation module.
 - support low-cost GNSS, we do not need to adapt for the robot_localization node.
 - support the gps constraint visualization module to help debugging the normal GNSS.(the following picture)
-<img src="README/image-20220531015953876.png" alt="image-20220531015953876" style="zoom: 50%;" />
 
 <img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
 
-## Latest News(2022-10-27)
+## Latest News(2022-11-10)
 
-- fix some bugs of GNSS odometry, remove some useless codes in lio intialization module
-
+- fix some bugs of GNSS odometry, If the gnss has enough translation (greater than 0.1m) in a short period of time, then we publish an absolute yaw angle as a reference.
+- In the LIO-GPS initialization module, if the GNSS trajectory has been well aligned with the LIO trajectory, then we will refine the LLA coordinates of the starting point of the map.
 - add tf messages in *__result.bag so that we can use the result.bag to generate the gif demo above!
-
 - add [rviz_satellate](https://github.com/nobleo/rviz_satellite) plugs which can show your point cloud  on google map. 
-
-- update orgin LLA of map origin point automatically during the optimization.
+- update map origin point automatically during the optimization.
 
 ![image-20221030051152185](README/image-20221030051152185.png)
 
@@ -31,9 +28,7 @@ LIO_SAM is only designed for 9-axis IMU, for the following reasons.
 
 - the back-end GNSS-based optimization relies on the robot_localization node, and also requires a 9-axis IMU.
 
-Therefore, only minor changes to the original code are required.  which can directly use GPS points of good quality for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and extrinsics between lidars and IMUs, such as Pandar.
-
-we add the gps constraint visualization module to help debugging the normal gps(red lines represents for gps constraint).
+Therefore, only minor changes to the original code are required.  which can directly use stable GPS points for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and extrinsics between lidars and IMUs, such as Pandar.
 
 # Usage
 
@@ -79,7 +74,7 @@ follow these steps:
 
 ## Single Sequence
 
-- hkust_20201105full
+- **hkust_20201105full**
 
 ```
 roslaunch lio_sam_6axis run.launch
@@ -87,15 +82,7 @@ roslaunch lio_sam_6axis run.launch
 
 when you set the `useGPS` true, you may get the following los. It means that these gps points are used for optimization.
 
-```bash
-[ INFO] [1651092699.914940274]: curr gps cov: 11.022400, 11.022400 , 176.358400
-[ INFO] [1651092700.516013418]: curr gps pose: 13.806815, 7.928380 , 5.147980
-[ INFO] [1651092700.516037958]: curr gps cov: 11.022400, 11.022400 , 176.358400
-[ INFO] [1651092700.516045476]: curr gps pose: 13.868968, 8.179937 , 4.978980
-[ INFO] [1651092700.516052422]: curr gps cov: 11.022400, 11.022400 , 176.358400
-```
-
-- garden_day
+- **garden_day**
 
 when you use the **garden_day** rosbag, set your **bag_path** in the **LIO-SAM-6AXIS/launch/ouster128_indoors.launch**.
 
@@ -173,7 +160,7 @@ rosservice call /lio_sam_6axis/save_map
 
 1. colored point cloud  map
 2. dynamic object removal
-3. GNSS Raw Observations
+3. GNSS Raw Observations(Pseudorange，carrier phase and droppler).
 
 As soon as I have time I will continue to update this repo and release more data.
 
