@@ -4,31 +4,39 @@
 
 # LIO_SAM_6AXIS
 
+## Introduction
+
 This repo may help to adapt [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM) for your own sensors! 
 
 - support a 6-axis IMU, since the orientation information of IMU is not used in state estimation module.
-- support low-cost GNSS, we do not need to adapt for the robot_localization node.
-- support the gps constraint visualization module to help debugging the normal GNSS.(the following picture)
-
-<img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
-
-## Latest News(2022-11-10)
-
-- fix some bugs of GNSS odometry, If the gnss has enough translation (greater than 0.1m) in a short period of time, then we publish an absolute yaw angle as a reference.
-- In the LIO-GPS initialization module, if the GNSS trajectory has been well aligned with the LIO trajectory, then we will refine the LLA coordinates of the starting point of the map.
-- add tf messages in *__result.bag so that we can use the result.bag to generate the gif demo above!
-- add [rviz_satellate](https://github.com/nobleo/rviz_satellite) plugs which can show your point cloud  on google map. 
-- update map origin point automatically during the optimization.
-
-![image-20221030051152185](README/image-20221030051152185.png)
-
-# Introduction
+- support low-cost GNSS, thus we do not need to adapt for the robot_localization node.
+- support the gps constraint visualization module to help debugging the normal GNSS.
 
 LIO_SAM is only designed for 9-axis IMU, for the following reasons.
 
 - the back-end GNSS-based optimization relies on the robot_localization node, and also requires a 9-axis IMU.
 
 Therefore, only minor changes to the original code are required.  which can directly use stable GPS points for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and extrinsics between lidars and IMUs, such as Pandar.
+
+<img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
+
+## Latest News(2022-11-10)
+
+- fix some bugs of GNSS odometry, If the gnss has enough translation (larger than 0.1m) in a short time, then we publish an absolute yaw angle as a reference.
+- In the LIO-GPS initialization module, if the GNSS trajectory has been  aligned  well with the LIO trajectory, then we will refine the LLA coordinate  of the origin point of the map.
+- add tf messages in *__result.bag so that we can use the result.bag to generate the gif demo above!
+- add [rviz_satellate](https://github.com/nobleo/rviz_satellite) plugs which can show your point cloud  on google map. 
+- update map origin point automatically during the optimization.
+
+![image-20221030051152185](README/image-20221030051152185.png)
+
+# Dataset and Adaption
+
+| Dataset            | Description                                                  | Sensor                                     | Link                                                         | GT                                                           | Comment                                                      |
+| ------------------ | ------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| hkust_20201105full | ![image-20221030035547512](README/image-20221030035547512.png) | vlp16 + stim300+left camera+ normal gps    | [Dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view), [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4). | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/ESoJj5STkVlFrOZruvEKg0gBasZimTC2HSQ2kqdIOWHiGg?e=TMtrz6) | about 10 km outdoor, See [this doc](doc/adaption.md).        |
+| HILTI DATASET      | ![img](README/construction_sheldonian.jpg)                   | hesai32+ low-cost imu+5 fisher eye  camera | [Download](https://hilti-challenge.com/dataset-2022.html)    |                                                              | The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly! |
+| garden_day         | ![Garden](README/garden.png)                                 | ouster128 + stim300+ stere camera          | [Download](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/Ea-e6VPaa59Br-26KAQ5IssBwjYcoJSNOJs0qeKNZVeg1w?e=ZjrHx4) | indoors. when you download this compressed data, remember to execute the following command, `rosbag decompress 20220216_garden_day_ref_compressed.bag` |
 
 # Usage
 
@@ -104,9 +112,9 @@ when you want to test on multi-sequence rosbag with the same set of sensor equip
 python3 src/LIO-SAM-6AXIS/scripts/lio_loop_batch.py
 ```
 
-## Save Results
+## Results
 
-I will give the map and related example results constructed based on the instance data using LIO_SAM_6AXIS, once the sharing function of Baidu netdisk is normal.
+I will give the map and related example results constructed based on the instance data using LIO_SAM_6AXIS.
 
 ```bash
 rosservice call /lio_sam_6axis/save_map
@@ -134,35 +142,20 @@ rosservice call /lio_sam_6axis/save_map
 
 <img src="README/image-20220609044824460.png" alt="image-20220609044824460" style="zoom: 80%;" />
 
-# Dataset and Adaption
-
-| Dataset            | Description                                                  | Sensor                                     | Link                                                         | GT                                                           | Comment                                                      |
-| ------------------ | ------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| hkust_20201105full | ![image-20221030035547512](README/image-20221030035547512.png) | vlp16 + stim300+left camera+ normal gps    | [Dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view), [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4). | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/ESoJj5STkVlFrOZruvEKg0gBasZimTC2HSQ2kqdIOWHiGg?e=TMtrz6) | about 10km outdoor, See [this doc](doc/adaption.md).         |
-| HILTI DATASET      | ![img](README/construction_sheldonian.jpg)                   | hesai32+ low-cost imu+5 fisher eye  camera | [Download](https://hilti-challenge.com/dataset-2022.html)    |                                                              | The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly! |
-| garden_day         | ![Garden](README/garden.png)                                 | ouster128 + stim300+ stere camera          | [Download](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/Ea-e6VPaa59Br-26KAQ5IssBwjYcoJSNOJs0qeKNZVeg1w?e=ZjrHx4) | indoors. when you download this compressed data, remember to execute the following command, `rosbag decompress 20220216_garden_day_ref_compressed.bag` |
 
 # Related Package
 
-#### 1. [LIO-SAM-6AXIS-UrbanNav](https://github.com/zhouyong1234/LIO-SAM-6AXIS-UrbanNav)
+## 1. [LIO-SAM-6AXIS-UrbanNav](https://github.com/zhouyong1234/LIO-SAM-6AXIS-UrbanNav)
 
 - LIO_SAM 6轴IMU适配香港城市数据集UrbanNav，并给出添加GPS约束和不加GPS约束的结果
 
-#### 2. [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY)
+## 2. [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY)
 
 - integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. 
 
 # Bugs
 
 1. Call the save map service only when your system optimization is complete, otherwise there will be problems.
-
-# TO DO
-
-1. colored point cloud  map
-2. dynamic object removal
-3. GNSS Raw Observations(Pseudorange，carrier phase and droppler).
-
-As soon as I have time I will continue to update this repo and release more data.
 
 # Star History
 
