@@ -43,35 +43,15 @@ roslaunch lio_sam_6axis run.launch
 
 For more information on how to use LIO_SAM_6AXIS, see the video tutorial and documentation.
 
-4.finally, save your point cloud map.
+4. finally, save your point cloud map.
 
 ```bash
 rosservice call /lio_sam_6axis/save_map
 ```
 
-- `campus_result.bag`: inlcude 2 topics, the distorted point cloud and the optimzed odometry
-
-- `odom_tum.txt`
-
-- `optimized_odom_kitti.txt`
-
-- `optimized_odom_tum.txt`
-
-- `pose_graph.g2o`: the final pose graph g2o file
-
-- `globalmap_lidar.pcd`: global map in lidar frame.
-
-- `globalmap_imu.pcd`: global map in IMU body frame, but you need to set proper extrinsics.
-
-- `globalmap_lidar_feature.pcd`: edge+planer points map, based on lidar frame.
-
-- `origin.txt`: The origin of the point cloud map, which can be used for prior map-based localization.  
-
-- `optimized_gps_trajectry.kml`: KML file for optimized trajectory, you can show it in GoogleMaps.
-
 <img src="README/image-20220609044824460.png" alt="image-20220609044824460" style="zoom: 80%;" />
 
-5.for docker support.
+5. for docker support.
 
 `Dockerfile` is for people who don't want to break their own environment.
 
@@ -90,15 +70,10 @@ source devel/setup.zsh
 
 # with dataset download and linked ==> please see more usage in previous section
 roslaunch lio_sam_6axis ouster128_indoors.launch
-```
 
-对于在内地的同学，可以换源`dockerhub`后，直接拉取：
-
-```bash
+# 对于在内地的同学，可以换源`dockerhub`后，直接拉取：
 docker pull zhangkin/lio_sam_6axis
 ```
-
-![](README/docker_example.png)
 
 ## Documentation
 
