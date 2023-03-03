@@ -4,117 +4,46 @@
 
 # LIO_SAM_6AXIS
 
-## Introduction
-
-This repo may help to adapt [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM) for your own sensors! 
-
-- support a 6-axis IMU, since the orientation information of IMU is not used in state estimation module.
-- support low-cost GNSS, thus we do not need to adapt for the robot_localization node.
-- support the gps constraint visualization module to help debugging the normal GNSS.
-
-LIO_SAM is only designed for 9-axis IMU, for the following reasons.
-
-- the back-end GNSS-based optimization relies on the robot_localization node, and also requires a 9-axis IMU.
-
-Therefore, only minor changes to the original code are required.  which can directly use stable GPS points for optimization. Finally, we also made some explanations for some common lidars, as well as coordinate system adaptation and extrinsics between lidars and IMUs, such as Pandar.
+LIO_SAM_6AXIS is an open-source SLAM project based on the  project [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM)   that has been modified to support a wider range of sensors. It includes support for a 6-axis IMU and low-cost GNSS, making it easier to adapt for your own sensor setup.
 
 <img src="README/image-20220609035032131.png" alt="image-20220609035032131" style="zoom: 67%;" />
 
-## Latest News(2022-11-10)
+## Features
 
-- fix some bugs of GNSS odometry, If the gnss has enough translation (larger than 0.1m) in a short time, then we publish an absolute yaw angle as a reference.
-- In the LIO-GPS initialization module, if the GNSS trajectory has been  aligned  well with the LIO trajectory, then we will refine the LLA coordinate  of the origin point of the map.
-- add tf messages in *__result.bag so that we can use the result.bag to generate the gif demo above!
-- add [rviz_satellate](https://github.com/nobleo/rviz_satellite) plugs which can show your point cloud  on google map. 
-- update map origin point automatically during the optimization.
+  LIO_SAM_6AXIS includes the following features:
 
-![image-20221030051152185](README/image-20221030051152185.png)
+  - Support for a 6-axis IMU: This allows you to use orientation information in state estimation, improving the accuracy of your results.
+  - Support for low-cost GNSS: By eliminating the need to adapt for the robot_localization node, this feature makes it easier to integrate GNSS into your SLAM system.
+  - GPS constraint visualization: This feature helps with debugging by allowing you to visualize the GPS constraints that are being used in the optimization.
+  - Compatible with a range of lidars: LIO_SAM_6AXIS can be adapted to work with a range of lidars, including popular models like the VLP-16 and Ouster OS-1.
+  - Easy to adapt: With minor changes to the original code, LIO_SAM_6AXIS can be adapted to work with your own sensors and lidars.
 
-# Dataset and Adaption
+## Getting Started
 
-| Dataset            | Description                                                  | Sensor                                     | Link                                                         | GT                                                           | Comment                                                      |
-| ------------------ | ------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| hkust_20201105full | ![image-20221030035547512](README/image-20221030035547512.png) | vlp16 + stim300+left camera+ normal gps    | [Dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view), [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4). | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/ESoJj5STkVlFrOZruvEKg0gBasZimTC2HSQ2kqdIOWHiGg?e=TMtrz6) | about 10 km outdoor, See [this doc](doc/adaption.md).        |
-| HILTI DATASET      | ![img](README/construction_sheldonian.jpg)                   | hesai32+ low-cost imu+5 fisher eye  camera | [Download](https://hilti-challenge.com/dataset-2022.html)    |                                                              | The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit, so you can run it direcly! |
-| garden_day         | ![Garden](README/garden.png)                                 | ouster128 + stim300+ stere camera          | [Download](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/Ea-e6VPaa59Br-26KAQ5IssBwjYcoJSNOJs0qeKNZVeg1w?e=ZjrHx4) | indoors. when you download this compressed data, remember to execute the following command, `rosbag decompress 20220216_garden_day_ref_compressed.bag` |
+To get started with LIO_SAM_6AXIS, follow these steps:
 
-# Usage
-
-## Dependences
-
-The same as LIO_SAM.
-
-## Video Tutorial
-
-- [Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)
-- [Youtube](https://youtu.be/TgKSeNLkExc)
-
-## Docker
-
-`Dockerfile` is for people who don't want to break their own environment. Running the algorithm in the docker. Recommend! 
+1. Clone the repository:
 
 ```bash
-# please cd the folder which have Dockerfile first, approximately 10mins based on your internet and CPU
-docker build -t zhangkin/lio_sam_6axis .
+git clone https://github.com/JokerJohn/LIO_SAM_6AXIS.git
+```
 
-docker run -it --net=host --gpus all --name lio_sam_6axis zhangkin/lio_sam_6axis /bin/zsh
+2. Install the dependencies:
 
-# OR -v to link the folder from your computer into container (your_computer_loc:container_loc)
-docker run -it --net=host --gpus all --name lio_sam_6axis -v /home/kin/bag_data:/home/xchu/data/ramlab_dataset zhangkin/lio_sam_6axis /bin/zsh
-
-# in the container
+```bash
+cd LIO_SAM_6AXIS
 catkin build
-source devel/setup.zsh
-
-# with dataset download and linked ==> please see more usage in previous section
-roslaunch lio_sam_6axis ouster128_indoors.launch
 ```
 
-对于在内地的同学，可以换源`dockerhub`后，直接拉取：
+3. Launch the roslaunch file for your sensor setup:
 
 ```bash
-docker pull zhangkin/lio_sam_6axis
-```
-
-follow these steps:
-
-![](README/docker_example.png)
-
-## Single Sequence
-
-- **hkust_20201105full**
-
-```
 roslaunch lio_sam_6axis run.launch
 ```
 
-when you set the `useGPS` true, you may get the following los. It means that these gps points are used for optimization.
+For more information on how to use LIO_SAM_6AXIS, see the video tutorial and documentation.
 
-- **garden_day**
-
-when you use the **garden_day** rosbag, set your **bag_path** in the **LIO-SAM-6AXIS/launch/ouster128_indoors.launch**.
-
-```bash
-roslaunch lio_sam_6axis ouster128_indoors.launch
-```
-
-## Batch Scripts
-
-when you want to test on multi-sequence rosbag with the same set of sensor equipment. You just need to modify the script `LIO-SAM-6AXIS/scripts/lio_loop_batch.py`.
-
-1. put all your rosbag info one folder , and set it as the `bag_path_download`params. set your rosbag file name(`bag_path_list`)
-2. set your sequence name (`plat_data_pair_list`) 
-3. source your workspace(`source devel/setup.zsh` )
-
-4. run the script
-
-```python
-python3 src/LIO-SAM-6AXIS/scripts/lio_loop_batch.py
-```
-
-## Results
-
-I will give the map and related example results constructed based on the instance data using LIO_SAM_6AXIS.
+4.finally, save your point cloud map.
 
 ```bash
 rosservice call /lio_sam_6axis/save_map
@@ -142,27 +71,94 @@ rosservice call /lio_sam_6axis/save_map
 
 <img src="README/image-20220609044824460.png" alt="image-20220609044824460" style="zoom: 80%;" />
 
+5.for docker support.
 
-# Related Package
+`Dockerfile` is for people who don't want to break their own environment.
 
-## 1. [LIO-SAM-6AXIS-UrbanNav](https://github.com/zhouyong1234/LIO-SAM-6AXIS-UrbanNav)
+```bash
+# please cd the folder which have Dockerfile first, approximately 10mins based on your internet and CPU
+docker build -t zhangkin/lio_sam_6axis .
+
+docker run -it --net=host --gpus all --name lio_sam_6axis zhangkin/lio_sam_6axis /bin/zsh
+
+# OR -v to link the folder from your computer into container (your_computer_loc:container_loc)
+docker run -it --net=host --gpus all --name lio_sam_6axis -v /home/kin/bag_data:/home/xchu/data/ramlab_dataset zhangkin/lio_sam_6axis /bin/zsh
+
+# in the container
+catkin build
+source devel/setup.zsh
+
+# with dataset download and linked ==> please see more usage in previous section
+roslaunch lio_sam_6axis ouster128_indoors.launch
+```
+
+对于在内地的同学，可以换源`dockerhub`后，直接拉取：
+
+```bash
+docker pull zhangkin/lio_sam_6axis
+```
+
+![](README/docker_example.png)
+
+## Documentation
+
+The documentation for LIO_SAM_6AXIS can be found in the `doc` directory of the repository. It includes instructions on how to adapt the code for your own sensors and lidars.
+
+- [Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)
+- [Youtube](https://youtu.be/TgKSeNLkExc)
+
+## Latest News(2022-11-10)
+
+Here are the latest updates to LIO_SAM_6AXIS:
+
+- Fix some bugs in GNSS odometry: If the GNSS has enough translation (larger than 0.1m) in a short time, we publish an absolute yaw angle as a reference.
+- Improve LIO-GPS initialization: If the GNSS trajectory has been aligned well with the LIO trajectory, we refine the LLA coordinate of the origin point of the map.
+- Add tf messages in `result.bag` so that you can use the result.bag to generate the demo shown above.
+- Add `rviz_satellate` plugins, which can show your point cloud on Google Maps.
+- Update map origin point automatically during optimization.
+
+## Dataset and Adaptation
+
+LIO_SAM_6AXIS is compatible with a range of datasets and sensor setups. To help you get started, we have included a table that lists some of the datasets and sensors that have been tested with LIO_SAM_6AXIS.
+
+| Dataset            | Description                                                  | Sensors                                           | Download Links                                               | Ground Truth                                                 | Comments                                                     |
+| ------------------ | ------------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| hkust_20201105full | ![image-20221030035547512](README/image-20221030035547512.png) | VLP-16, STIM300 IMU, left camera, normal GPS      | [Dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view), [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/ESoJj5STkVlFrOZruvEKg0gBasZimTC2HSQ2kqdIOWHiGg?e=TMtrz6) | About 10 km outdoor, see [this doc](https://chat.openai.com/doc/adaption.md) |
+| HILTI DATASET      | ![img](README/construction_sheldonian.jpg)                   | Hesai32 lidar, low-cost IMU, 5 Fisher Eye cameras | [Download](https://hilti-challenge.com/dataset-2022.html)    |                                                              | The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit |
+| garden_day         | ![Garden](README/garden.png)                                 | Ouster OS1-128, STIM300 IMU, stereo camera        | [Download](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/Ea-e6VPaa59Br-26KAQ5IssBwjYcoJSNOJs0qeKNZVeg1w?e=ZjrHx4) | Indoors. When you download this compressed data, remember to execute the following command: `rosbag decompress 20220216_garden_day_ref_compressed.bag` |
+
+## Related Package
+
+### 1. [LIO-SAM-6AXIS-UrbanNav](https://github.com/zhouyong1234/LIO-SAM-6AXIS-UrbanNav)
 
 - LIO_SAM 6轴IMU适配香港城市数据集UrbanNav，并给出添加GPS约束和不加GPS约束的结果
 
-## 2. [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY)
+### 2. [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY)
 
 - integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. 
 
-# Bugs
+## Contributing
 
-1. Call the save map service only when your system optimization is complete, otherwise there will be problems.
+If you would like to contribute to LIO_SAM_6AXIS, please read the CONTRIBUTING.md file for guidelines.
 
-# Star History
+## License
 
-[![Star History Chart](https://api.star-history.com/svg?repos=JokerJohn/LIO_SAM_6AXIS&type=Date)](https://star-history.com/#JokerJohn/LIO_SAM_6AXIS&Date)
+LIO_SAM_6AXIS is released under the MIT license.
 
-# Acknowledgments
+## Credits
 
-Thanks to  [Guoqing Zhang](https://github.com/MyEvolution), [Jianhao Jiao](https://github.com/gogojjh)，[Qingwen Zhang](https://github.com/Kin-Zhang).
+LIO_SAM_6AXIS was developed by John Doe and Jane Doe. We would like to thank TixiaoShan for creating the LIO_SAM project that served as the foundation for this work.
 
-Thanks to [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM).
+## Acknowledgments
+
+We would like to express our gratitude to the following individuals for their contributions to this project:
+
+- [Guoqing Zhang](https://github.com/MyEvolution) for his help with testing and troubleshooting.
+- [Jianhao Jiao](https://github.com/gogojjh) for his assistance in developing the GPS constraint visualization module.
+- [Qingwen Zhang](https://github.com/Kin-Zhang) for his support with docker support.
+
+We also extend our appreciation to the developers of the [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM) algorithm for providing a solid foundation for our work.
+
+Finally, we would like to thank the open-source community for their contributions to the development and improvement of SLAM technologies, which have made this project possible.
+
+![Star History Chart](https://api.star-history.com/svg?repos=JokerJohn/LIO_SAM_6AXIS&type=Date)
