@@ -44,6 +44,9 @@ using PointT = pcl::PointXYZI;
 
 class DataSaver {
  public:
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW 
+
   DataSaver();
 
   ~DataSaver();
