@@ -15,7 +15,7 @@ LIO_SAM_6AXIS is an open-source SLAM project based on the  project [LIO_SAM](htt
   - Support for a 6-axis IMU: This allows you to use orientation information in state estimation, improving the accuracy of your results.
   - Support for low-cost GNSS: By eliminating the need to adapt for the robot_localization node, this feature makes it easier to integrate GNSS into your SLAM system.
   - GPS constraint visualization: This feature helps with debugging by allowing you to visualize the GPS constraints that are being used in the optimization.
-  - Compatible with a range of lidars: LIO_SAM_6AXIS can be adapted to work with a range of lidars, including popular models like the VLP-16 and Ouster OS-1.
+  - Compatible with a range of lidars: LIO_SAM_6AXIS can be adapted to work with a range of lidars, including popular models like the VLP-16 ，Pandar32 and Ouster OS-1.
   - Easy to adapt: With minor changes to the original code, LIO_SAM_6AXIS can be adapted to work with your own sensors and lidars.
 
 ## Getting Started
@@ -122,7 +122,7 @@ LIO_SAM_6AXIS is released under the MIT license.
 
 ## Credits
 
-LIO_SAM_6AXIS was developed by John Doe and Jane Doe. We would like to thank TixiaoShan for creating the LIO_SAM project that served as the foundation for this work.
+We would like to thank TixiaoShan for creating the LIO_SAM project that served as the foundation for this work.
 
 ## Acknowledgments
 
