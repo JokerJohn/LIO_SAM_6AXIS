@@ -129,7 +129,7 @@ We would like to thank TixiaoShan for creating the LIO_SAM project that served a
 We would like to express our gratitude to the following individuals for their contributions to this project:
 
 - [Guoqing Zhang](https://github.com/MyEvolution) for his help with testing and troubleshooting.
-- [Jianhao Jiao](https://github.com/gogojjh) for his assistance in developing the GPS constraint visualization module.
+- [Jianhao Jiao](https://github.com/gogojjh) and [Jin Wu](https://github.com/zarathustr) for his assistance in developing the GPS constraint visualization module.
 - [Qingwen Zhang](https://github.com/Kin-Zhang) for his support with docker support.
 
 We also extend our appreciation to the developers of the [LIO_SAM](https://github.com/TixiaoShan/LIO-SAM) algorithm for providing a solid foundation for our work.
