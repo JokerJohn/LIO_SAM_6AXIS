@@ -1,0 +1,31 @@
+<launch>
+
+    <arg name="project" default="lio_sam_6axis"/>
+
+    <!--Fusion Portable dataset: https://ram-lab.com/file/site/fusionportable/dataset/fusionportable/ -->
+    <!--indoor sequence: 20220216_garden_day_ref-->
+    <!--sensor kit: ouster128 LiDAR, STIM300 IMU, 2 FLIR cameras-->
+    <arg name="bag_path"
+         default="/media/xchu/e81eaf80-d92c-413a-a503-1c9b35b19963/home/xchu/data/hkust/indoors/20220216_garden_day_ref.bag"/>
+    <arg name="sequence" default="20220216_garden_day_ref"/>
+
+    <rosparam file="$(find lio_sam_6axis)/config/fp_indoors.yaml" command="load"/>
+
+    <!--- LOAM -->
+    <param name="saveDirectory" type="string" value="$(find lio_sam_6axis)/data/"/>
+    <rosparam param="sequence" subst_value="true">$(arg sequence)</rosparam>
+    <include file="$(find lio_sam_6axis)/launch/include/module_loam.launch"/>
+
+    <!--- Robot State TF -->
+    <include file="$(find lio_sam_6axis)/launch/include/module_robot_state_publisher.launch"/>
+
+    <!--    loop detector-->
+    <!--    <include file="$(find imaging_lidar_place_recognition)/launch/fp_indoors.launch"/>-->
+
+    <!--- Run Rviz-->
+    <node pkg="rviz" type="rviz" name="$(arg project)_rviz"
+          args="-d $(find lio_sam_6axis)/launch/include/config/fp_indoors.rviz"/>
+
+    <node pkg="rosbag" type="play" name="bag_play" args="$(arg bag_path) --clock -d 5"/>
+
+</launch>

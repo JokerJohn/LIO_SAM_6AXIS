@@ -1,12 +1,17 @@
 <launch>
 
     <arg name="project" default="lio_sam_6axis"/>
+
+    <!--Fusion Portable dataset: https://ram-lab.com/file/site/fusionportable/dataset/fusionportable/ -->
+    <!--indoor sequence: 20220216_garden_day_ref-->
+    <!--sensor kit: ouster128 LiDAR, STIM300 IMU, 2 FLIR cameras-->
+
     <arg name="bag_path"
          default="/media/xchu/e81eaf80-d92c-413a-a503-1c9b35b19963/home/xchu/data/hkust/outdoors/20220226_campus_road_day_ref.bag"/>
     <arg name="sequence" default="20220226_campus_road_day_ref"/>
 
     <!-- Parameters -->
-    <rosparam file="$(find lio_sam_6axis)/config/outdoors_ouster128.yaml" command="load"/>
+    <rosparam file="$(find lio_sam_6axis)/config/fp_outdoors.yaml" command="load"/>
 
     <!--- LOAM -->
     <param name="saveDirectory" type="string" value="$(find lio_sam_6axis)/data/"/>
@@ -24,7 +29,7 @@
           output="screen"/>
 
     <!--    loop detector by intensity image-->
-    <!--    <include file="$(find imaging_lidar_place_recognition)/launch/ouster128_outdoors.launch"/>-->
+    <!--    <include file="$(find imaging_lidar_place_recognition)/launch/fp_outdoors.launch"/>-->
 
     <!--- Run Rviz-->
     <node pkg="rviz" type="rviz" name="$(arg project)_rviz"

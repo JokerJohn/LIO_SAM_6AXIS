@@ -28,10 +28,10 @@ find_package(PCL REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(GTSAM REQUIRED)
 find_package(libxml2 QUIET)
-if(NOT LIBXML2_FOUND)
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(Y REQUIRED libxml-2.0)
-endif()
+if (NOT LIBXML2_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(Y REQUIRED libxml-2.0)
+endif ()
 
 add_message_files(
         DIRECTORY msg
@@ -52,6 +52,8 @@ generate_messages(
         nav_msgs
         sensor_msgs
 )
+
+add_subdirectory(./ThirdParty/GeographicLib/)
 
 catkin_package(
         INCLUDE_DIRS include
@@ -76,6 +78,7 @@ include_directories(
         ${GTSAM_INCLUDE_DIR}
         ${Y_INCLUDE_DIRS}
         ${LIBXML2_INCLUDE_DIRS}
+        ./ThirdParty/GeographicLib/include/
 )
 
 # link directories
@@ -95,7 +98,7 @@ link_directories(
 
 # Gps odometry
 add_executable(${PROJECT_NAME}_gpsOdometry src/simpleGpsOdom.cpp)
-target_link_libraries(${PROJECT_NAME}_gpsOdometry ${catkin_LIBRARIES} ${LIBXML2_LIBRARIES} ${Y_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_gpsOdometry ${catkin_LIBRARIES} ${LIBXML2_LIBRARIES} ${Y_LIBRARIES} libGeographic)
 
 # Range Image Projection
 add_executable(${PROJECT_NAME}_imageProjection src/imageProjection.cpp)
@@ -111,7 +114,7 @@ target_link_libraries(${PROJECT_NAME}_featureExtraction ${catkin_LIBRARIES} ${PC
 add_executable(${PROJECT_NAME}_mapOptmization src/mapOptmizationGps.cpp src/dataSaver.cpp)
 add_dependencies(${PROJECT_NAME}_mapOptmization ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 target_compile_options(${PROJECT_NAME}_mapOptmization PRIVATE ${OpenMP_CXX_FLAGS})
-target_link_libraries(${PROJECT_NAME}_mapOptmization ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${OpenMP_CXX_FLAGS} gtsam ${LIBXML2_LIBRARIES} ${Y_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_mapOptmization ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${OpenMP_CXX_FLAGS} gtsam ${LIBXML2_LIBRARIES} ${Y_LIBRARIES} libGeographic)
 
 # IMU Preintegration
 add_executable(${PROJECT_NAME}_imuPreintegration src/imuPreintegration.cpp)

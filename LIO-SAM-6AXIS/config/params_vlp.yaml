@@ -98,7 +98,7 @@ lio_sam_6axis:
 
 
   # mapping
-  globalMapLeafSize: 0.1                        # saved map voxgrid size
+  globalMapLeafSize: 0.5                        # saved map voxgrid size
 
 
 # Navsat (convert GPS coordinates to Cartesian)

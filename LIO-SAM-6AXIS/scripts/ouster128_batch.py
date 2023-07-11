@@ -32,7 +32,7 @@ if __name__ == '__main__':
         bag_path_dir = bag_path_list[i]
         # for bag_path_dir in bag_path_list:
         for algorithm_type in algorithm_type_list:
-            command = 'roslaunch lio_sam_6axis ouster128_outdoors.launch' + \
+            command = 'roslaunch lio_sam_6axis fp_outdoors.launch' + \
                       ' bag_path:=' + bag_path_dir + \
                       ' sequence:=' + pd_pair[1]
             # print("================run algorithm at %s sequence==================" % (

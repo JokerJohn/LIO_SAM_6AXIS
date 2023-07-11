@@ -1,6 +1,4 @@
 lio_sam_6axis:
-
-  # for ouster and stim300(6 axis)
   # Topics
   pointCloudTopic: "/os_cloud_node/points"               # Point cloud data
   imuTopic: "/stim300/imu/data_raw"
@@ -15,7 +13,7 @@ lio_sam_6axis:
 
   # GPS Settings
   useGPS: true
-  gpsFrequence: 10                            # set proper gps frequence to align gps and lidar timestamp
+  gpsFrequence: 10                            # allow gps and lidar timestamp as 1/10 s
   useImuHeadingInitialization: false           # if using GPS data, set to "true"
   useGpsElevation: true                      # if GPS elevation is bad, set to "false"
   gpsCovThreshold: 2.0                        # m^2, threshold for using GPS data
@@ -38,7 +36,7 @@ lio_sam_6axis:
   Horizon_SCAN: 2048                          # lidar horizontal resolution (Velodyne:1800, Ouster:512,1024,2048, Livox Horizon: 4000)
   downsampleRate: 1                           # default: 1. Downsample your data if too many points. i.e., 16 = 64 / 4, 16 = 16 / 1
   lidarMinRange: 0.5                          # default: 1.0, minimum lidar range to be used
-  lidarMaxRange: 100.0                       # default: 1000.0, maximum lidar range to be used
+  lidarMaxRange: 60.0                       # default: 1000.0, maximum lidar range to be used
 
   # IMU Settings
   imuFrequence: 200
