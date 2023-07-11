@@ -630,6 +630,8 @@ public:
                                                        &cloudKeyPoses6D->points[i]);
             *globalSurfCloud += *transformPointCloud(surfCloudKeyFrames[i],
                                                      &cloudKeyPoses6D->points[i]);
+
+            /** if you want to save the orgin deskewed point cloud, but not only feature map*/
 //            *globalRawCloud += *transformPointCloud(laserCloudRawKeyFrames[i],
 //                                                    &cloudKeyPoses6D->points[i]);
             cout << "\r" << std::flush << "Processing feature cloud " << i << " of "
@@ -654,6 +656,7 @@ public:
 //                                       globalMapLeafSize);
 //        downSizeFilterSurf.filter(*globalRawCloudDS);
 
+        /** if you need to downsample the final map, 0.5m is ok*/
         downSizeFilterSurf.setInputCloud(globalMapCloud);
         downSizeFilterSurf.setLeafSize(globalMapLeafSize, globalMapLeafSize, globalMapLeafSize);
         downSizeFilterSurf.filter(*globalMapCloud);
@@ -1134,11 +1137,6 @@ public:
             if (useGPS) {
                 ROS_INFO("GPS use to init pose");
 
-                // since we cannot guarantee the precise alignment of the initial GPS
-                // and lidar coordinate systems, this is just a rough orientation. When
-                // a large number of accurate GPS points are added to the pose graph in
-                // the future, the accuracy of the entire alignment will be relatively
-                // high.
                 nav_msgs::Odometry alignedGPS;
                 if (syncGPS(gpsQueue, alignedGPS, timeLaserInfoCur,
                             1.0 / gpsFrequence)) {
@@ -1162,11 +1160,7 @@ public:
 
 
                     if (debugGps) {
-                        // std::cout << "GPS: " << gps_transform.matrix() << std::endl;
                         std::cout << "initial gps yaw: " << yaw << std::endl;
-//                        std::cout << "GPS Position: " << alignedGPS.pose.pose.position.x
-//                                  << "," << alignedGPS.pose.pose.position.y << ", "
-//                                  << alignedGPS.pose.pose.position.z << std::endl;
                         std::cout << "GPS Position: " << enu.transpose() << std::endl;
                         std::cout << "GPS LLA: " << originLLA.transpose() << std::endl;
                     }
@@ -1179,7 +1173,7 @@ public:
                     gnssPoint.x = enu[0],
                     gnssPoint.y = enu[1],
                     gnssPoint.z = enu[2];
-                    // the first gnss point must be fixed with a smaller cov
+                    // the first gnss point must be fixed with a smaller cov, make sure you are in a RTK fixed area
                     float noise_x = alignedGPS.pose.covariance[0] * 1e-4;
                     float noise_y = alignedGPS.pose.covariance[7] * 1e-4;
                     float noise_z = alignedGPS.pose.covariance[14] * 1e-4;

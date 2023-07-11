@@ -38,6 +38,7 @@ catkin build
 3. Launch the roslaunch file for your sensor setup:
 
 ```bash
+# set your bag_path here
 roslaunch lio_sam_6axis run.launch
 ```
 
@@ -46,6 +47,7 @@ For more information on how to use LIO_SAM_6AXIS, see the video tutorial and doc
 4. finally, save your point cloud map.
 
 ```bash
+# map is in the LIO-SAM-6AXIS/data 
 rosservice call /lio_sam_6axis/save_map
 ```
 
@@ -82,25 +84,22 @@ The documentation for LIO_SAM_6AXIS can be found in the `doc` directory of the r
 - [Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)
 - [Youtube](https://youtu.be/TgKSeNLkExc)
 
-## Latest News(2022-11-10)
+## Latest News(2023-07-10)
 
 Here are the latest updates to LIO_SAM_6AXIS:
 
-- Fix some bugs in GNSS odometry: If the GNSS has enough translation (larger than 0.1m) in a short time, we publish an absolute yaw angle as a reference.
-- Improve LIO-GPS initialization: If the GNSS trajectory has been aligned well with the LIO trajectory, we refine the LLA coordinate of the origin point of the map.
-- Add tf messages in `result.bag` so that you can use the result.bag to generate the demo shown above.
-- Add `rviz_satellate` plugins, which can show your point cloud on Google Maps.
-- Update map origin point automatically during optimization.
+- Remove Gpstools and use libGeographic for accuracy .
+- Fix bugs of saving map service
 
 ## Dataset and Adaptation
 
 LIO_SAM_6AXIS is compatible with a range of datasets and sensor setups. To help you get started, we have included a table that lists some of the datasets and sensors that have been tested with LIO_SAM_6AXIS.
 
-| Dataset            | Description                                                  | Sensors                                           | Download Links                                               | Ground Truth                                                 | Comments                                                     |
-| ------------------ | ------------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| hkust_20201105full | ![image-20221030035547512](README/image-20221030035547512.png) | VLP-16, STIM300 IMU, left camera, normal GPS      | [Dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view), [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/ESoJj5STkVlFrOZruvEKg0gBasZimTC2HSQ2kqdIOWHiGg?e=TMtrz6) (password:123) | About 10 km outdoor, see [this doc](https://chat.openai.com/doc/adaption.md) |
-| HILTI DATASET      | ![img](README/construction_sheldonian.jpg)                   | Hesai32 lidar, low-cost IMU, 5 Fisher Eye cameras | [Download](https://hilti-challenge.com/dataset-2022.html)    |                                                              | The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit |
-| garden_day         | ![Garden](README/garden.png)                                 | Ouster OS1-128, STIM300 IMU, stereo camera        | [Download](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/Ea-e6VPaa59Br-26KAQ5IssBwjYcoJSNOJs0qeKNZVeg1w?e=ZjrHx4) | Indoors. When you download this compressed data, remember to execute the following command: `rosbag decompress 20220216_garden_day_ref_compressed.bag` |
+| Dataset                                                      | Description                                                  | Sensors                                           | Download Links                                               | Ground Truth                                                 | Comments                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| hkust_20201105full                                           | ![image-20221030035547512](README/image-20221030035547512.png) | VLP-16, STIM300 IMU, left camera, normal GPS      | [Dropbox](https://drive.google.com/file/d/1bGmIll1mJayh5_2LokoshVneUmJ6ep00/view), [BaiduNetdisk](https://pan.baidu.com/s/1il01D0Ea3KgfdABS8iPHug) (password: m8g4) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/ESoJj5STkVlFrOZruvEKg0gBasZimTC2HSQ2kqdIOWHiGg?e=TMtrz6) (password:123) | About 10 km outdoor, see [this doc](https://chat.openai.com/doc/adaption.md) |
+| [HILTI](https://hilti-challenge.com/dataset-2022.html) DATASET 2022 | ![img](README/construction_sheldonian.jpg)                   | Hesai32 lidar, low-cost IMU, 5 Fisher Eye cameras | [Download](https://hilti-challenge.com/dataset-2022.html)    |                                                              | The [config/params_pandar.yaml](https://github.com/JokerJohn/LIO_SAM_6AXIS/blob/main/LIO-SAM-6AXIS/config/params_pandar.yaml) is prepared for the HILTI sensors kit |
+| [FusionPortable](https://ram-lab.com/file/site/fusionportable/dataset/fusionportable/) DATASET | ![Garden](README/garden.png)                                 | Ouster OS1-128, STIM300 IMU, stereo camera        | [Download](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/EQavWMqsN6FCiKlpBanFis8Bci-Mwl3S_-g1XPrUrVFB9Q?e=lGEKFE) | [GT](https://hkustconnect-my.sharepoint.com/:t:/g/personal/xhubd_connect_ust_hk/Ea-e6VPaa59Br-26KAQ5IssBwjYcoJSNOJs0qeKNZVeg1w?e=ZjrHx4) | Indoors. When you download this compressed data, remember to execute the following command: `rosbag decompress 20220216_garden_day_ref_compressed.bag` |
 
 ## Related Package
 
@@ -111,14 +110,6 @@ LIO_SAM_6AXIS is compatible with a range of datasets and sensor setups. To help 
 ### 2. [LIO-SAM-6AXIS-INTENSITY](https://github.com/JokerJohn/LIO-SAM-6AXIS-INTENSITY)
 
 - integrate [LIO-SAM](https://github.com/TixiaoShan/LIO-SAM) and [Imaging_lidar_place_recognition](https://github.com/TixiaoShan/imaging_lidar_place_recognition) to achieve better mapping and localization result for SLAM system. 
-
-## Contributing
-
-If you would like to contribute to LIO_SAM_6AXIS, please read the CONTRIBUTING.md file for guidelines.
-
-## License
-
-LIO_SAM_6AXIS is released under the MIT license.
 
 ## Credits
 
