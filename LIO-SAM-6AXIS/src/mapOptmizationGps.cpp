@@ -68,7 +68,7 @@ public:
     ros::Publisher pubLaserOdometryIncremental;
     ros::Publisher pubKeyPoses;
     ros::Publisher pubPath;
-    ros::Publisher pubGPSOrigin;
+    ros::Publisher pubGPSOdometry;
 
     ros::Publisher pubHistoryKeyFrames;
     ros::Publisher pubIcpKeyFrames;
@@ -214,8 +214,9 @@ public:
         parameters.relinearizeSkip = 1;
         isam = new ISAM2(parameters);
 
-        if (useGPS)
-            pubGPSOrigin = nh.advertise<sensor_msgs::NavSatFix>("gps/fix", 1);
+        if (useGPS) {
+            pubGPSOdometry = nh.advertise<sensor_msgs::NavSatFix>("lio_sam_6axis/mapping/odometry_gps", 1);
+        }
 
         pubKeyPoses = nh.advertise<sensor_msgs::PointCloud2>(
                 "lio_sam_6axis/mapping/trajectory", 1);
@@ -489,9 +490,9 @@ public:
                 hasGPS = true;
                 aligedGps = gpsQueue.front();
                 gpsQueue.pop_front();
-                //        if (debugGps)
-                //          ROS_INFO("GPS time offset %f ",
-                //                   aligedGps.header.stamp.toSec() - timestamp);
+//                if (debugGps)
+//                    ROS_INFO("GPS time offset %f ",
+//                             aligedGps.header.stamp.toSec() - timestamp);
                 mtxGpsInfo.unlock();
             }
         }
@@ -509,16 +510,11 @@ public:
             return false;
         }
 
-        // when you shut down the terminal , we will save odom  and map
         Eigen::Vector3d optimized_lla;
         if (useGPS) {
             Eigen::Vector3d first_point(cloudKeyPoses6D->at(0).x,
                                         cloudKeyPoses6D->at(0).y,
                                         cloudKeyPoses6D->at(0).z);
-            // GpsTools gpsTools;
-            // gpsTools.lla_origin_ = originLLA;
-            // geo_converter.Reset(originLLA[0], originLLA[1], originLLA[2]);
-
             // we save optimized origin gps point
             geo_converter.Reverse(first_point[0], first_point[1], first_point[2], optimized_lla[0], optimized_lla[1],
                                   optimized_lla[2]);
@@ -530,7 +526,6 @@ public:
             dataSaverPtr->saveOriginGPS(optimized_lla);
         }
         geo_converter.Reset(optimized_lla[0], optimized_lla[1], optimized_lla[2]);
-
 
         vector<pcl::PointCloud<PointType>::Ptr> keyframePc;
         std::vector<Eigen::Vector3d> lla_vec;
@@ -596,6 +591,7 @@ public:
         // dataSaverPtr->saveResultBag(keyframePosesOdom, keyframeCloudDeskewed, transform_vec);
         if (useGPS) dataSaverPtr->saveKMLTrajectory(lla_vec);
 
+        /** always remember do not call this service if your databag do not play over!!!!!!!!*/
         mtxGraph.lock();
         dataSaverPtr->saveGraphGtsam(gtSAMgraph, isam, isamCurrentEstimate);
         mtxGraph.unlock();
@@ -630,8 +626,7 @@ public:
                                                        &cloudKeyPoses6D->points[i]);
             *globalSurfCloud += *transformPointCloud(surfCloudKeyFrames[i],
                                                      &cloudKeyPoses6D->points[i]);
-
-            /** if you want to save the orgin deskewed point cloud, but not only feature map*/
+            /** if you want to save the origin deskewed point cloud, but not only feature map*/
 //            *globalRawCloud += *transformPointCloud(laserCloudRawKeyFrames[i],
 //                                                    &cloudKeyPoses6D->points[i]);
             cout << "\r" << std::flush << "Processing feature cloud " << i << " of "
@@ -1136,48 +1131,52 @@ public:
             systemInitialized = false;
             if (useGPS) {
                 ROS_INFO("GPS use to init pose");
-
+                /** when you align gnss and lidar timestamp, make sure (1.0/gpsFrequence) is small encougn
+                 *  no need to care about the real gnss frquency. time alignment fail will cause
+                 *  "[ERROR] [1689196991.604771416]: sysyem need to be initialized"
+                 * */
                 nav_msgs::Odometry alignedGPS;
                 if (syncGPS(gpsQueue, alignedGPS, timeLaserInfoCur,
                             1.0 / gpsFrequence)) {
-
-                    double roll, pitch, yaw;
-                    tf::Matrix3x3(tf::Quaternion(alignedGPS.pose.pose.orientation.x,
-                                                 alignedGPS.pose.pose.orientation.y,
-                                                 alignedGPS.pose.pose.orientation.z,
-                                                 alignedGPS.pose.pose.orientation.w))
-                            .getRPY(roll, pitch, yaw);
-
-
+                    /** we store the origin wgs84 coordinate points in covariance[1]-[3] */
                     originLLA.setIdentity();
                     originLLA = Eigen::Vector3d(alignedGPS.pose.covariance[1],
                                                 alignedGPS.pose.covariance[2],
                                                 alignedGPS.pose.covariance[3]);
+                    /** set your map origin points */
                     geo_converter.Reset(originLLA[0], originLLA[1], originLLA[2]);
-                    double x, y, z;
-                    geo_converter.Forward(originLLA[0], originLLA[1], originLLA[2], x, y, z);
-                    Eigen::Vector3d enu(x, y, z);
-
+                    // WGS84->ENU, must be (0,0,0)
+                    Eigen::Vector3d enu;
+                    geo_converter.Forward(originLLA[0], originLLA[1], originLLA[2], enu[0], enu[1], enu[2]);
 
                     if (debugGps) {
+                        double roll, pitch, yaw;
+                        tf::Matrix3x3(tf::Quaternion(alignedGPS.pose.pose.orientation.x,
+                                                     alignedGPS.pose.pose.orientation.y,
+                                                     alignedGPS.pose.pose.orientation.z,
+                                                     alignedGPS.pose.pose.orientation.w))
+                                .getRPY(roll, pitch, yaw);
                         std::cout << "initial gps yaw: " << yaw << std::endl;
                         std::cout << "GPS Position: " << enu.transpose() << std::endl;
                         std::cout << "GPS LLA: " << originLLA.transpose() << std::endl;
                     }
 
-                    // add first factor
-                    // we need this origin GPS point for prior map based localization
-                    // but we need to optimize its value by pose graph if the origin gps
-                    // data is not fixed.
+                    /** add the first factor, we need this origin GPS point for prior map based localization,
+                     * but we need to optimize its value by pose graph if the origin gps RTK status is not fixed.*/
                     PointType gnssPoint;
                     gnssPoint.x = enu[0],
                     gnssPoint.y = enu[1],
                     gnssPoint.z = enu[2];
-                    // the first gnss point must be fixed with a smaller cov, make sure you are in a RTK fixed area
-                    float noise_x = alignedGPS.pose.covariance[0] * 1e-4;
-                    float noise_y = alignedGPS.pose.covariance[7] * 1e-4;
-                    float noise_z = alignedGPS.pose.covariance[14] * 1e-4;
+                    float noise_x = alignedGPS.pose.covariance[0];
+                    float noise_y = alignedGPS.pose.covariance[7];
+                    float noise_z = alignedGPS.pose.covariance[14];
 
+                    /** if we get reliable origin point, we adjust the weight of this gps factor */
+                    if (!updateOrigin) {
+                        noise_x *= 1e-4;
+                        noise_y *= 1e-4;
+                        noise_z *= 1e-4;
+                    }
                     gtsam::Vector Vector3(3);
                     Vector3 << noise_x, noise_y, noise_z;
                     noiseModel::Diagonal::shared_ptr gps_noise =
@@ -2152,35 +2151,6 @@ public:
                 updatePath(cloudKeyPoses6D->points[i]);
             }
 
-            // pose changed we publish a message to fix frame
-//            if (useGPS && gpsTransfromInit && gpsIndexContainer.size() / 200 == 0) {
-            if (useGPS && gpsTransfromInit) {
-                Eigen::Vector3d curr_point(cloudKeyPoses6D->at(0).x,
-                                           cloudKeyPoses6D->at(0).y,
-                                           cloudKeyPoses6D->at(0).z);
-
-                // geo_converter.Reset(originLLA[0], originLLA[1], originLLA[2]);
-
-                // we save optimized origin gps point, maybe the altitude value need to
-                // be fixed
-                Eigen::Vector3d cuurr_lla;
-                geo_converter.Reverse(curr_point[0], curr_point[1], curr_point[2], cuurr_lla[0], cuurr_lla[1],
-                                      cuurr_lla[2]);
-
-//                std::cout << std::setprecision(9)
-//                          << "CURR LLA: " << originLLA.transpose() << std::endl;
-//                std::cout << std::setprecision(9)
-//                          << "update LLA: " << cuurr_lla.transpose() << std::endl;
-
-                sensor_msgs::NavSatFix fix_msgs;
-                fix_msgs.header.stamp = ros::Time().fromSec(timeLaserInfoCur);
-                fix_msgs.header.frame_id = odometryFrame;
-                fix_msgs.latitude = cuurr_lla[0];
-                fix_msgs.longitude = cuurr_lla[1];
-                fix_msgs.altitude = cuurr_lla[2];
-                pubGPSOrigin.publish(fix_msgs);
-            }
-
             aLoopIsClosed = false;
         }
     }
@@ -2273,6 +2243,46 @@ public:
         tf::StampedTransform trans_odom_to_lidar = tf::StampedTransform(
                 t_odom_to_lidar, timeLaserInfoStamp, odometryFrame, "lidar_link");
         br.sendTransform(trans_odom_to_lidar);
+
+        if (useGPS) {
+            if (gpsTransfromInit && updateOrigin) {
+                /** we first update the initial GPS origin points since it may not fix here */
+                Eigen::Vector3d origin_point(cloudKeyPoses6D->at(0).x,
+                                             cloudKeyPoses6D->at(0).y,
+                                             cloudKeyPoses6D->at(0).z);
+                // ENU->LLA
+                Eigen::Vector3d update_origin_lla;
+                geo_converter.Reverse(origin_point[0], origin_point[1], origin_point[2], update_origin_lla[0],
+                                      update_origin_lla[1],
+                                      update_origin_lla[2]);
+                geo_converter.Reset(update_origin_lla[0], update_origin_lla[1], update_origin_lla[2]);
+                std::cout << " origin points: " << originLLA.transpose() << std::endl;
+                std::cout << " update origin points: " << update_origin_lla.transpose() << std::endl;
+                originLLA = update_origin_lla;
+                updateOrigin = false;
+                ROS_WARN("UPDATE MAP ORIGIN SUCCESS!");
+            }
+
+            /** we transform the optimized ENU point to LLA point for visualization with rviz_satellite*/
+            Eigen::Vector3d curr_point(cloudKeyPoses6D->back().x,
+                                       cloudKeyPoses6D->back().y,
+                                       cloudKeyPoses6D->back().z);
+            Eigen::Vector3d curr_lla;
+            // ENU->LLA
+            geo_converter.Reverse(curr_point[0], curr_point[1], curr_point[2], curr_lla[0], curr_lla[1],
+                                  curr_lla[2]);
+            //                std::cout << std::setprecision(9)
+            //                          << "CURR LLA: " << originLLA.transpose() << std::endl;
+            //                std::cout << std::setprecision(9)
+            //                          << "update LLA: " << curr_lla.transpose() << std::endl;
+            sensor_msgs::NavSatFix fix_msgs;
+            fix_msgs.header.stamp = ros::Time().fromSec(timeLaserInfoCur);
+            fix_msgs.header.frame_id = odometryFrame;
+            fix_msgs.latitude = curr_lla[0];
+            fix_msgs.longitude = curr_lla[1];
+            fix_msgs.altitude = curr_lla[2];
+            pubGPSOdometry.publish(fix_msgs);
+        }
 
         // Publish odometry for ROS (incremental)
         static bool lastIncreOdomPubFlag = false;

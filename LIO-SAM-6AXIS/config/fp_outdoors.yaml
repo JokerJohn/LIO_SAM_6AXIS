@@ -13,6 +13,7 @@ lio_sam_6axis:
 
   # GPS Settings
   useGPS: true
+  updateOrigin: false                          # when you can not get a reliable gps origin points(RTK fixed)
   gpsFrequence: 10                            # allow gps and lidar timestamp as 1/10 s
   useImuHeadingInitialization: false           # if using GPS data, set to "true"
   useGpsElevation: true                      # if GPS elevation is bad, set to "false"

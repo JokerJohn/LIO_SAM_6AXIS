@@ -87,6 +87,7 @@ public:
     // GPS Settings
     int gpsFrequence;
     bool useGPS;
+    bool updateOrigin;
     bool useImuHeadingInitialization;
     bool useGpsElevation;
     float gpsCovThreshold;
@@ -97,6 +98,7 @@ public:
     bool debugLidarTimestamp;
     bool debugImu;
     bool debugGps;
+
 
     // Save pcd
     bool savePCD;
@@ -197,6 +199,7 @@ public:
 
 
         nh.param<bool>("lio_sam_6axis/useGPS", useGPS, false);
+        nh.param<bool>("lio_sam_6axis/updateOrigin", updateOrigin, false);
         nh.param<int>("lio_sam_6axis/gpsFrequence", gpsFrequence, 10);
         nh.param<bool>("lio_sam_6axis/useImuHeadingInitialization", useImuHeadingInitialization, false);
         nh.param<bool>("lio_sam_6axis/useGpsElevation", useGpsElevation, false);

@@ -11,9 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
         roscpp
         rospy
         cv_bridge
-        # pcl library
         pcl_conversions
-        # msgs
         std_msgs
         sensor_msgs
         geometry_msgs
