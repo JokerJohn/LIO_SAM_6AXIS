@@ -35,7 +35,7 @@ private:
             ROS_INFO("Init Orgin GPS LLA  %f, %f, %f", msg->latitude, msg->longitude,
                      msg->altitude);
             geo_converter.Reset(lla[0], lla[1], lla[2]);
-            initXyz = true;
+            initENU = true;
 
             /** publish initial pose from GNSS ENU Frame*/
             nav_msgs::Odometry init_msg;
