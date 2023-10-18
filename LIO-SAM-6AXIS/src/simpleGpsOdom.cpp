@@ -1,5 +1,3 @@
-
-
 #include "ros/ros.h"
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
@@ -18,7 +16,7 @@ class GNSSOdom : public ParamServer {
 public:
     GNSSOdom(ros::NodeHandle &_nh) {
         nh = _nh;
-        gpsSub = nh.subscribe(gpsTopic, 100, &GNSSOdom::GNSSCB, this,
+        gpsSub = nh.subscribe(gpsTopic, 1000, &GNSSOdom::GNSSCB, this,
                               ros::TransportHints().tcpNoDelay());
         left_odom_pub = nh.advertise<nav_msgs::Odometry>("/gps_odom", 100, false);
         init_origin_pub = nh.advertise<nav_msgs::Odometry>("/init_odom", 10000, false);
@@ -29,12 +27,11 @@ private:
     void GNSSCB(const sensor_msgs::NavSatFixConstPtr &msg) {
         std::cout << "gps status: " << msg->status.status << std::endl;
         if (std::isnan(msg->latitude + msg->longitude + msg->altitude)) {
-            //ROS_ERROR("POS LLA NAN...");
             return;
         }
         Eigen::Vector3d lla(msg->latitude, msg->longitude, msg->altitude);
         //std::cout << "LLA: " << lla.transpose() << std::endl;
-        if (!initXyz) {
+        if (!initENU) {
             ROS_INFO("Init Orgin GPS LLA  %f, %f, %f", msg->latitude, msg->longitude,
                      msg->altitude);
             geo_converter.Reset(lla[0], lla[1], lla[2]);
@@ -64,6 +61,7 @@ private:
         geo_converter.Forward(lla[0], lla[1], lla[2], x, y, z);
         Eigen::Vector3d enu(x, y, z);
         if (abs(enu.x()) > 10000 || abs(enu.x()) > 10000 || abs(enu.x()) > 10000) {
+            /** check your lla coordinate */
             ROS_INFO("Error ogigin : %f, %f, %f", enu(0), enu(1), enu(2));
             return;
         }
@@ -80,18 +78,12 @@ private:
             orientationReady = true;
         }
 
-        // pub gps odometry
+        /** pub gps odometry*/
         nav_msgs::Odometry odom_msg;
         odom_msg.header.stamp = msg->header.stamp;
         odom_msg.header.frame_id = odometryFrame;
         odom_msg.child_frame_id = "gps";
 
-        // ----------------- 1. use utm -----------------------
-        //        odom_msg.pose.pose.position.x = utm_x - origin_utm_x;
-        //        odom_msg.pose.pose.position.y = utm_y - origin_utm_y;
-        //        odom_msg.pose.pose.position.z = msg->altitude - origin_al;
-
-        // ----------------- 2. use enu -----------------------
         odom_msg.pose.pose.position.x = enu(0);
         odom_msg.pose.pose.position.y = enu(1);
         odom_msg.pose.pose.position.z = enu(2);
@@ -133,7 +125,7 @@ private:
     std::mutex mutexLock;
     std::deque<sensor_msgs::NavSatFixConstPtr> gpsBuf;
 
-    bool initXyz = false;
+    bool initENU = false;
     nav_msgs::Path left_path;
     GeographicLib::LocalCartesian geo_converter;
     Eigen::Vector3d prev_pose_left, prev_pose_right;

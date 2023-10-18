@@ -1136,8 +1136,7 @@ public:
                  *  "[ERROR] [1689196991.604771416]: sysyem need to be initialized"
                  * */
                 nav_msgs::Odometry alignedGPS;
-                if (syncGPS(gpsQueue, alignedGPS, timeLaserInfoCur,
-                            1.0 / gpsFrequence)) {
+                if (syncGPS(gpsQueue, alignedGPS, timeLaserInfoCur, 1.0 / gpsFrequence)) {
                     /** we store the origin wgs84 coordinate points in covariance[1]-[3] */
                     originLLA.setIdentity();
                     originLLA = Eigen::Vector3d(alignedGPS.pose.covariance[1],
@@ -1171,19 +1170,18 @@ public:
                     float noise_y = alignedGPS.pose.covariance[7];
                     float noise_z = alignedGPS.pose.covariance[14];
 
-                    /** if we get reliable origin point, we adjust the weight of this gps factor */
-                    if (!updateOrigin) {
-                        noise_x *= 1e-4;
-                        noise_y *= 1e-4;
-                        noise_z *= 1e-4;
-                    }
+                    /** if we get reliable origin point, we adjust the weight of this gps factor to fix the map origin */
+                    //if (!updateOrigin) {
+                    noise_x *= 1e-4;
+                    noise_y *= 1e-4;
+                    noise_z *= 1e-4;
+                    // }
                     gtsam::Vector Vector3(3);
                     Vector3 << noise_x, noise_y, noise_z;
                     noiseModel::Diagonal::shared_ptr gps_noise =
                             noiseModel::Diagonal::Variances(Vector3);
-                    gtsam::GPSFactor gps_factor(
-                            0, gtsam::Point3(gnssPoint.x, gnssPoint.y, gnssPoint.z),
-                            gps_noise);
+                    gtsam::GPSFactor gps_factor(0, gtsam::Point3(gnssPoint.x, gnssPoint.y, gnssPoint.z),
+                                                gps_noise);
                     keyframeGPSfactor.push_back(gps_factor);
                     cloudKeyGPSPoses3D->points.push_back(gnssPoint);
 
@@ -2245,25 +2243,25 @@ public:
         br.sendTransform(trans_odom_to_lidar);
 
         if (useGPS) {
-            if (gpsTransfromInit && updateOrigin) {
-                /** we first update the initial GPS origin points since it may not fix here */
-                Eigen::Vector3d origin_point(cloudKeyPoses6D->at(0).x,
-                                             cloudKeyPoses6D->at(0).y,
-                                             cloudKeyPoses6D->at(0).z);
-                // ENU->LLA
-                Eigen::Vector3d update_origin_lla;
-                geo_converter.Reverse(origin_point[0], origin_point[1], origin_point[2], update_origin_lla[0],
-                                      update_origin_lla[1],
-                                      update_origin_lla[2]);
-                geo_converter.Reset(update_origin_lla[0], update_origin_lla[1], update_origin_lla[2]);
-                std::cout << " origin points: " << originLLA.transpose() << std::endl;
-                std::cout << " update origin points: " << update_origin_lla.transpose() << std::endl;
-                originLLA = update_origin_lla;
-                updateOrigin = false;
-                ROS_WARN("UPDATE MAP ORIGIN SUCCESS!");
-            }
+//            if (gpsTransfromInit) {
+            /** we first update the initial GPS origin points since it may not fix here */
+            //                Eigen::Vector3d origin_point(cloudKeyPoses6D->at(0).x,
+            //                                             cloudKeyPoses6D->at(0).y,
+            //                                             cloudKeyPoses6D->at(0).z);
+            //                // ENU->LLA
+            //                Eigen::Vector3d update_origin_lla;
+            //                geo_converter.Reverse(origin_point[0], origin_point[1], origin_point[2], update_origin_lla[0],
+            //                                      update_origin_lla[1],
+            //                                      update_origin_lla[2]);
+            //geo_converter.Reset(update_origin_lla[0], update_origin_lla[1], update_origin_lla[2]);
+            // std::cout << " origin points: " << originLLA.transpose() << std::endl;
+            // std::cout << " update origin points: " << update_origin_lla.transpose() << std::endl;
+            //                originLLA = update_origin_lla;
+            //                updateOrigin = false;
+            // ROS_WARN("UPDATE MAP ORIGIN SUCCESS!");
+//            }
 
-            /** we transform the optimized ENU point to LLA point for visualization with rviz_satellite*/
+            /** we transform the  ENU point to LLA point for visualization with rviz_satellite*/
             Eigen::Vector3d curr_point(cloudKeyPoses6D->back().x,
                                        cloudKeyPoses6D->back().y,
                                        cloudKeyPoses6D->back().z);

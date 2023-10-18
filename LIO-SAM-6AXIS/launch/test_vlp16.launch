@@ -1,0 +1,33 @@
+<launch>
+    <arg name="project" default="lio_sam_6axis"/>
+    <arg name="bag_path" default="/media/xchu/e81eaf80-d92c-413a-a503-1c9b35b19963/home/xchu/data/hkust/outdoors/hkust_20201105full.bag"/>
+    <arg name="sequence" default="hkust_campus"/>
+
+    <!--set your own Parameters -->
+    <rosparam file="$(find lio_sam_6axis)/config/params_vlp.yaml" command="load"/>
+
+    <!--- LOAM -->
+    <param name="saveDirectory" type="string" value="$(find lio_sam_6axis)/data/"/>
+    <param name="configDirectory" type="string" value="$(find lio_sam_6axis)/config/"/>
+    <rosparam param="sequence" subst_value="true">$(arg sequence)</rosparam>
+    <include file="$(find lio_sam_6axis)/launch/include/module_loam.launch"/>
+
+    <!--- Robot State TF -->
+    <include file="$(find lio_sam_6axis)/launch/include/module_robot_state_publisher.launch"/>
+
+    <!--show satellite-->
+    <!--set your orgin gps lla  22.3387279108228 114.263622199692 87.7310562180355 -->
+    <node pkg="rostopic" type="rostopic" name="fake_gps_fix"
+          args="pub gps/fix sensor_msgs/NavSatFix '{ header: auto, latitude: 22.3387279108228, longitude: 114.263622199692, altitude:  87.7310562}'"
+          output="screen"/>
+
+    <!--- Run Navsat -->
+    <node pkg="lio_sam_6axis" type="lio_sam_6axis_gpsOdometry" name="lio_sam_6axis_gpsOdometry" output="log"/>
+
+    <!--- Run Rviz-->
+    <node pkg="rviz" type="rviz" name="$(arg project)_rviz"
+          args="-d $(find lio_sam_6axis)/launch/include/config/vlp.rviz"/>
+
+    <node pkg="rosbag" type="play" name="bag_play" args="$(arg bag_path) --clock -d 5 -r 2.0"/>
+
+</launch>

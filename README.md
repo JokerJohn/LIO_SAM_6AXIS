@@ -39,7 +39,7 @@ catkin build
 
 ```bash
 # set your bag_path here
-roslaunch lio_sam_6axis run.launch
+roslaunch lio_sam_6axis test_vlp16.launch
 ```
 
 For more information on how to use LIO_SAM_6AXIS, see the video tutorial and documentation.
