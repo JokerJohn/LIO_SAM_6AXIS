@@ -1,5 +1,6 @@
 #include "utility.h"
 #include "lio_sam_6axis/cloud_info.h"
+#include "pcl/filters/impl/filter.hpp"
 
 struct VelodynePointXYZIRT {
     PCL_ADD_POINT4D
@@ -14,6 +15,20 @@ POINT_CLOUD_REGISTER_POINT_STRUCT (VelodynePointXYZIRT,
                                    (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)
                                            (uint16_t, ring, ring)(float, time, time)
 )
+struct Velodyne_M1600PointXYZIRT {
+   PCL_ADD_POINT4D;
+  uint8_t intensity;
+  uint8_t ring;
+  uint32_t timestampSec;
+  uint32_t timestampNsec;
+  
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+} EIGEN_ALIGN16;
+POINT_CLOUD_REGISTER_POINT_STRUCT(
+    Velodyne_M1600PointXYZIRT,
+    (float, x, x)(float, y, y)(float, z, z)(uint8_t, intensity, intensity)(
+        uint8_t, ring, ring)(uint32_t, timestampSec, timestampSec)(uint32_t, timestampNsec, timestampNsec))
+
 
 struct PandarPointXYZIRT {
     PCL_ADD_POINT4D
@@ -122,6 +137,7 @@ private:
     pcl::PointCloud<PointXYZIRT>::Ptr laserCloudIn;
     pcl::PointCloud<OusterPointXYZIRT>::Ptr tmpOusterCloudIn;
     pcl::PointCloud<PandarPointXYZIRT>::Ptr tmpPandarCloudIn;
+    pcl::PointCloud<Velodyne_M1600PointXYZIRT>::Ptr tmpM1600CloudIn;
     pcl::PointCloud<PointType>::Ptr fullCloud;
     pcl::PointCloud<PointType>::Ptr extractedCloud;
 
@@ -173,6 +189,7 @@ public:
         laserCloudIn.reset(new pcl::PointCloud<PointXYZIRT>());
         tmpOusterCloudIn.reset(new pcl::PointCloud<OusterPointXYZIRT>());
         tmpPandarCloudIn.reset(new pcl::PointCloud<PandarPointXYZIRT>());
+        tmpM1600CloudIn.reset(new pcl::PointCloud<Velodyne_M1600PointXYZIRT>());
         fullCloud.reset(new pcl::PointCloud<PointType>());
         extractedCloud.reset(new pcl::PointCloud<PointType>());
 
@@ -285,7 +302,27 @@ public:
                 dst.time = src.time;
 //                dst.time = (i % 2048) / 20480.0;
             }
-        } else if (sensor == SensorType::HESAI) {
+        } else if (sensor == SensorType::VELODYNE_M1600) {
+               
+            pcl::moveFromROSMsg(currentCloudMsg, *tmpM1600CloudIn);
+            laserCloudIn->points.resize(tmpM1600CloudIn->size());
+            laserCloudIn->is_dense = tmpM1600CloudIn->is_dense;
+            double time_begins = tmpM1600CloudIn->points[0].timestampSec;
+            double time_beginns = tmpM1600CloudIn->points[0].timestampNsec;
+            double time_begin = time_begins + (time_beginns * 1e-9);
+            for (size_t i = 0; i < tmpM1600CloudIn->size(); i++) {
+                   auto &src = tmpM1600CloudIn->points[i];
+                   auto &dst = laserCloudIn->points[i];
+                   dst.x = src.x;
+                   dst.y = src.y*-1;
+                   dst.z = src.z*-1;
+                   dst.intensity = static_cast<float>(src.intensity);
+                   dst.ring = src.ring;
+                   double point_time = src.timestampSec + (src.timestampNsec * 1e-9);
+                   dst.time = point_time-time_begin;
+               }
+
+         }else if (sensor == SensorType::HESAI) {
             // Convert to Velodyne format
             pcl::moveFromROSMsg(currentCloudMsg, *tmpPandarCloudIn);
             laserCloudIn->points.resize(tmpPandarCloudIn->size());
@@ -320,7 +357,8 @@ public:
                       << laserCloudIn->points.back().time
                       << ", " << laserCloudIn->points.size() << std::endl;
         }
-
+	vector<int> indices;
+        pcl::removeNaNFromPointCloud(*laserCloudIn, *laserCloudIn, indices);
         // check dense flag
         if (laserCloudIn->is_dense == false) {
             ROS_ERROR("Point cloud is not in dense format, please remove NaN points first!");
@@ -347,7 +385,7 @@ public:
         if (deskewFlag == 0) {
             deskewFlag = -1;
             for (auto &field : currentCloudMsg.fields) {
-                if (field.name == "time" || field.name == "t" || field.name == "timestamp") {
+                if (field.name == "time" || field.name == "t" || field.name == "timestamp" || field.name == "timestampSec") {
                     deskewFlag = 1;
                     break;
                 }
@@ -635,7 +673,17 @@ public:
             } else if (sensor == SensorType::LIVOX) {
                 columnIdn = columnIdnCountVec[rowIdn];
                 columnIdnCountVec[rowIdn] += 1;
+            } else if (sensor == SensorType::VELODYNE_M1600) {
+                
+                float horizonAngle = atan2(thisPoint.x, thisPoint.y) * 180 / M_PI;
+                
+                float ang_res_x = 0.29; // or 0.33 for the extended model, as per the specifications
+                
+                columnIdn = round((horizonAngle / ang_res_x) + (Horizon_SCAN / 2));
+                if (columnIdn >= Horizon_SCAN)
+                    columnIdn -= Horizon_SCAN;
             }
+
 
             if (columnIdn < 0 || columnIdn >= Horizon_SCAN)
                 continue;
