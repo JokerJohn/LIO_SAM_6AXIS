@@ -1,0 +1,18 @@
+<launch>
+    <arg name="project" default="lio_sam_6axis"/>
+     <arg name="bag_path" default="/home/pedro/catkin_ws/src/lidar_tests/2_human_walking_illuminated_2023-01-23-001.bag"/>
+    <!-- Parameters -->
+    <rosparam file="$(find lio_sam_6axis)/config/params_m1600.yaml" command="load"/>
+
+    <!--- LOAM -->
+    <include file="$(find lio_sam_6axis)/launch/include/module_loam.launch"/>
+
+    <!--- Robot State TF -->
+    <include file="$(find lio_sam_6axis)/launch/include/module_robot_state_publisher.launch"/>
+
+    <!--- Run Rviz-->
+    <node pkg="rviz" type="rviz" name="$(arg project)_rviz"
+          args="-d $(find lio_sam_6axis)/launch/include/config/vlp.rviz"/>
+    <node pkg="rosbag" type="play" name="bag_play" args="$(arg bag_path) --clock -d 2 -r 1"/>
+
+</launch>
