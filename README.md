@@ -84,11 +84,11 @@ The documentation for LIO_SAM_6AXIS can be found in the `doc` directory of the r
 - [Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)
 - [Youtube](https://youtu.be/TgKSeNLkExc)
 
-## Latest News(2024-04-25)
+## Latest News(2025-05-06)
 
 Here are the latest updates to LIO_SAM_6AXIS:
 
-- Add support for Velodyne Velarray M1600 [#75](https://github.com/JokerJohn/LIO_SAM_6AXIS/pull/75) from [pedrotomas27](https://github.com/)
+- Add support for MS-Dataset (Pandar-XT32 + SBG-N IMU) and Newer college dataset (OS-128).
 
    
 
