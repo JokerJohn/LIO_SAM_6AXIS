@@ -15,8 +15,14 @@ LIO_SAM_6AXIS is an open-source SLAM project based on the  project [LIO_SAM](htt
   - Support for a 6-axis IMU: This allows you to use orientation information in state estimation, improving the accuracy of your results.
   - Support for low-cost GNSS: By eliminating the need to adapt for the robot_localization node, this feature makes it easier to integrate GNSS into your SLAM system.
   - GPS constraint visualization: This feature helps with debugging by allowing you to visualize the GPS constraints that are being used in the optimization.
-  - Compatible with a range of lidars: LIO_SAM_6AXIS can be adapted to work with a range of lidars, including popular models like the VLP-16 ，Pandar32 and Ouster OS-1.
-  - Easy to adapt: With minor changes to the original code, LIO_SAM_6AXIS can be adapted to work with your own sensors and lidars.
+
+## Latest News(2025-05-23)
+
+- Currently, it is challenging to make significant improvements and enhancements based on this framework. We strongly recommend using [MS-Mapping](https://github.com/JokerJohn/MS-Mapping) for mapping with **better accuracy and robustness**; you only need to set `useMultiMode = false`. Additionally, multi-session mapping is supported, and a Docker environment is available for configuration.
+
+![image (16)](./README/image%20(16).png)
+
+
 
 ## Getting Started
 
@@ -84,13 +90,8 @@ The documentation for LIO_SAM_6AXIS can be found in the `doc` directory of the r
 - [Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)
 - [Youtube](https://youtu.be/TgKSeNLkExc)
 
-## Latest News(2025-05-23)
 
-- Currently, it is challenging to make significant improvements and enhancements based on this framework. We strongly recommend using [MS-Mapping](https://github.com/JokerJohn/MS-Mapping) for mapping with **better accuracy and robustness**; you only need to set `useMultiMode = false`. Additionally, multi-session mapping is supported, and a Docker environment is available for configuration.
 
-![image (16)](./README/image%20(16).png)
-
-   
 
 ## Dataset and Adaptation
 
