@@ -86,7 +86,7 @@ The documentation for LIO_SAM_6AXIS can be found in the `doc` directory of the r
 
 ## Latest News(2025-05-23)
 
-- Currently, it is challenging to make significant improvements and enhancements based on this framework. We strongly recommend using [MS-Mapping](https://github.com/JokerJohn/MS-Mapping) for mapping; you only need to set `useMultiMode = false`. Additionally, multi-session mapping is supported, and a Docker environment is available for configuration.
+- Currently, it is challenging to make significant improvements and enhancements based on this framework. We strongly recommend using [MS-Mapping](https://github.com/JokerJohn/MS-Mapping) for mapping with **better accuracy and robustness**; you only need to set `useMultiMode = false`. Additionally, multi-session mapping is supported, and a Docker environment is available for configuration.
 
 ![image (16)](./README/image%20(16).png)
 
