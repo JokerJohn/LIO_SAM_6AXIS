@@ -84,11 +84,11 @@ The documentation for LIO_SAM_6AXIS can be found in the `doc` directory of the r
 - [Bilibili](https://www.bilibili.com/video/BV1YS4y1i7nX/)
 - [Youtube](https://youtu.be/TgKSeNLkExc)
 
-## Latest News(2025-05-06)
+## Latest News(2025-05-23)
 
-Here are the latest updates to LIO_SAM_6AXIS:
+- Currently, it is challenging to make significant improvements and enhancements based on this framework. We strongly recommend using [MS-Mapping](https://github.com/JokerJohn/MS-Mapping) for mapping; you only need to set `useMultiMode = false`. Additionally, multi-session mapping is supported, and a Docker environment is available for configuration.
 
-- Add support for MS-Dataset (Pandar-XT32 + SBG-N IMU) and Newer college dataset (OS-128).
+![image (16)](./README/image%20(16).png)
 
    
 
