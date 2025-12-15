@@ -60,7 +60,7 @@ private:
         // LLA->ENU, better accuacy than gpsTools especially for z value
         geo_converter.Forward(lla[0], lla[1], lla[2], x, y, z);
         Eigen::Vector3d enu(x, y, z);
-        if (abs(enu.x()) > 10000 || abs(enu.x()) > 10000 || abs(enu.x()) > 10000) {
+        if (abs(enu.x()) > 10000 || abs(enu.y()) > 10000 || abs(enu.z()) > 10000) {
             /** check your lla coordinate */
             ROS_INFO("Error ogigin : %f, %f, %f", enu(0), enu(1), enu(2));
             return;
